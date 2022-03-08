@@ -3,6 +3,10 @@ package com.sandeep.leetcode.solutions;
 public class RotateList {
 
     public ListNode rotateRight(ListNode head, int k) {
+        if(k == 0) {
+            return head;
+        }
+
         if (head == null) {
             return null;
         }
@@ -13,11 +17,9 @@ public class RotateList {
         }
 
         k = k % listLength;
-
         int fastPointerMovementLength = listLength - (k + 1);
-
         ListNode n1 = head;
-        while (fastPointerMovementLength >= 0) {
+        while (fastPointerMovementLength > 0) {
             n1 = n1.next;
             fastPointerMovementLength--;
         }
