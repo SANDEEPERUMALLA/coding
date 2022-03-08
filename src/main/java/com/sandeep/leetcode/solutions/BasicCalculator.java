@@ -16,8 +16,10 @@ public class BasicCalculator {
                     if (isOp(stack.peek())) {
                         String op = stack.pop();
                         String num2 = stack.pop();
-                        String res = eval(num, num2, op);
+                        String res = eval(num2, num, op);
                         stack.push(res);
+                    } else {
+                        stack.push(num);
                     }
                 } else {
                     stack.push(num);
@@ -41,15 +43,22 @@ public class BasicCalculator {
         if (num.length() > 0) {
             stack.push(num);
             processStack(stack);
-        } else {
-            return Integer.parseInt(stack.peek());
+        } else if (stack.size() > 1) {
+            processStack(stack);
         }
 
-        return -1;
+        return Integer.parseInt(stack.peek());
     }
 
     private void processStack(Stack<String> stack) {
 
+        while (stack.size() != 1) {
+            String num1 = stack.pop();
+            String op = stack.pop();
+            String num2 = stack.pop();
+            String res = eval(num2, num1, op);
+            stack.push(res);
+        }
     }
 
     private String eval(String num1, String num2, String op) {
@@ -68,6 +77,6 @@ public class BasicCalculator {
 
     public static void main(String[] args) {
         BasicCalculator basicCalculator = new BasicCalculator();
-        System.out.println(basicCalculator.calculate("1+1"));
+        System.out.println(basicCalculator.calculate("(1+(4+5+2)-3)+(6+8)"));
     }
 }
