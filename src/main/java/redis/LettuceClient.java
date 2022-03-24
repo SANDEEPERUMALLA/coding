@@ -2,19 +2,25 @@ package redis;
 
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
-import io.lettuce.core.SetArgs;
+import io.lettuce.core.ScoredValue;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 
-import java.time.Duration;
+import java.util.HashSet;
+import java.util.Set;
 
 public class LettuceClient {
 
-    public static void main(String[] args) {
+    public void test() {
+        System.out.println(this.getClass().getName());
+        System.out.println(this.getClass().getSimpleName());
+    }
 
-        redis1();
-        System.out.println("hjdehfhe");
-        System.out.println("hjdehfhe");
+    public static void main(String[] args) {
+        LettuceClient lettuceClient = new LettuceClient();
+        lettuceClient.test();
+
+        //redis1();
 //        RedisURI redisURI = RedisURI.builder()
 //                .withHost("localhost")
 //                .withAuthentication("default", "")
@@ -37,13 +43,21 @@ public class LettuceClient {
                 .withHost("localhost")
                 .withPort(6379)
                 .build();
-
-        System.out.println(redisURI);
         RedisClient redisClient = RedisClient.create(redisURI);
-        StatefulRedisConnection<String, String> connection = redisClient.connect();
-        RedisCommands<String, String> syncCommands = connection.sync();
-        syncCommands.set("key", "value", new SetArgs().ex(5));
-        System.out.println(syncCommands.ttl("key"));;
-        System.out.println(syncCommands.get("key"));
+        long start = System.currentTimeMillis();
+        try (StatefulRedisConnection<String, String> connection = redisClient.connect()) {
+
+            RedisCommands<String, String> syncCommands = connection.sync();
+            Set<ScoredValue<String>> set = new HashSet<>();
+            for (int i = 0; i <= 10_00_0000; i++) {
+                set.add(ScoredValue.fromNullable(i, "test1234" + i));
+            }
+            syncCommands.zadd("set1", null, set.toArray(new ScoredValue[0]));
+        } finally {
+            redisClient.shutdown();
+            System.out.println("Total Execution time in ms: " + (System.currentTimeMillis() - start));
+        }
+
+
     }
 }

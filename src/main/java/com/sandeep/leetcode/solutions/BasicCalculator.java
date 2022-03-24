@@ -38,6 +38,9 @@ public class BasicCalculator {
                 stack.pop();
                 stack.push(n);
             }
+
+            System.out.println("Index: " + i);
+            System.out.println(stack);
         }
 
         if (num.length() > 0) {
