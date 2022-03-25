@@ -18,7 +18,7 @@ public class RangeScanTester {
     }
 
     public static void main(String[] args) {
-       // redisZRangeTest();
+        redisZRangeTest();
         testNavigationSet();
     }
 
@@ -110,7 +110,6 @@ public class RangeScanTester {
             long time = System.nanoTime() - start;
             printTime(time);
             times.add(time);
-            System.out.println(result);
             System.out.println("Result Size : " + result.size());
         }
 
@@ -126,8 +125,8 @@ public class RangeScanTester {
         List<String> dates = getDates();
         List<String> values = new ArrayList<>();
         for (String date : dates) {
-            for (int i = 1; i <= 10; i++) {
-                values.add(date + ":" + generateRandomStringOfSize(30));
+            for (int i = 1; i <= 10000; i++) {
+                values.add(date + ":" + generateRandomStringOfSize(18));
             }
         }
         return values;
