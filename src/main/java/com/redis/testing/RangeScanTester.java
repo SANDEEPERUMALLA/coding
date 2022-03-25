@@ -142,7 +142,7 @@ public class RangeScanTester {
     }
 
     private static void printTime(String timeIdentifier, long timeInNs) {
-        log(timeIdentifier + ": " + TimeUnit.NANOSECONDS.toMillis(timeInNs) + " ms," + TimeUnit.NANOSECONDS.toMicros(timeInNs) + "us");
+        log(timeIdentifier + ": " + TimeUnit.NANOSECONDS.toMillis(timeInNs) + " ms," + TimeUnit.NANOSECONDS.toMicros(timeInNs) + " us");
     }
 
     private static void printTime(long timeInNs) {
@@ -159,7 +159,7 @@ public class RangeScanTester {
         return dateStrings;
     }
 
-    private static String sanitizeDay(int d) {
+    private static String sanitize(int d) {
         String day = String.valueOf(d);
         return day.length() == 1 ? "0" + day : day;
     }
@@ -169,8 +169,8 @@ public class RangeScanTester {
     }
 
     private static String getDateString(LocalDateTime localDateTime) {
-        String month = sanitizeDay(localDateTime.getMonth().getValue());
-        String day = sanitizeDay(localDateTime.getDayOfMonth());
+        String month = sanitize(localDateTime.getMonth().getValue());
+        String day = sanitize(localDateTime.getDayOfMonth());
         String year = String.valueOf(localDateTime.getYear());
         return month + "/" + day + "/" + year;
     }
