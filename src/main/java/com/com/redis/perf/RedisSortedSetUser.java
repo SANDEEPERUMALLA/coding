@@ -19,7 +19,7 @@ public class RedisSortedSetUser extends Thread {
     List<Long> latencies = new ArrayList<>();
 
     public RedisSortedSetUser(int userId) {
-        super("redis-user" + userId);
+        super("redis-sorted-set-user" + userId);
         this.jedis = new Jedis(URI.create("redis://localhost:6379"));
     }
 

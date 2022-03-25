@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static com.com.redis.perf.Logger.log;
 import static com.com.redis.perf.Utils.*;
@@ -32,17 +33,21 @@ public class Main {
         user2.join();
         user3.join();
         List<RedisSortedSetUser> users = List.of(user1, user2, user3);
-        printRunStats(users);
         long end = System.currentTimeMillis();
-        log("Total Run Time" + (end - start));
+        printRunStats(users, start, end);
     }
 
-    private static void printRunStats(List<RedisSortedSetUser> users) {
+    private static void printRunStats(List<RedisSortedSetUser> users, long start, long end) {
+        long totalRunTime = TimeUnit.MILLISECONDS.toSeconds(end - start);
+        log("Total Run Time in secs: " + totalRunTime);
+        long totalOps = 0L;
         List<Long> latencies = new ArrayList<>();
         for (RedisSortedSetUser user : users) {
+            totalOps += user.getNoOfOps();
             log(user.getName() + ": " + user.getNoOfOps());
             latencies.addAll(user.getLatencies());
         }
+        log("Throughout per sec: " + (totalOps / totalRunTime));
         printStats(latencies);
     }
 
