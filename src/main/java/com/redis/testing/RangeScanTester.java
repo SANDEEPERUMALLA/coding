@@ -11,12 +11,14 @@ import java.util.concurrent.TimeUnit;
 public class RangeScanTester {
 
     private static Jedis jedis;
+
     static {
-        jedis =  new Jedis(URI.create("redis://localhost:6379"));
+        jedis = new Jedis(URI.create("redis://localhost:6379"));
 
     }
+
     public static void main(String[] args) {
-        redisZRangeTest();
+       // redisZRangeTest();
         testNavigationSet();
     }
 
@@ -59,9 +61,9 @@ public class RangeScanTester {
         List<Long> times = new ArrayList<>();
         for (int i = 1; i <= 100; i++) {
             long start = System.nanoTime();
-            String eR = dateTime.getDayOfMonth() + "/" + dateTime.getMonth().getValue() + "/" + dateTime.getYear();
+            String eR = sanitizeDay(dateTime.getDayOfMonth()) + "/" + dateTime.getMonth().getValue() + "/" + dateTime.getYear();
             dateTime = dateTime.minusDays(1);
-            String sR = dateTime.getDayOfMonth() + "/" + dateTime.getMonth().getValue() + "/" + dateTime.getYear();
+            String sR = sanitizeDay(dateTime.getDayOfMonth()) + "/" + dateTime.getMonth().getValue() + "/" + dateTime.getYear();
             System.out.println("Range : [" + sR + " - " + eR + "]");
             Set<String> result = jedis.zrangeByLex("set1", "[" + sR, "[" + eR);
             long time = System.nanoTime() - start;
@@ -71,6 +73,7 @@ public class RangeScanTester {
         }
 
         IntSummaryStatistics statistics = times.stream().mapToInt(Long::intValue).summaryStatistics();
+        System.out.println("Average Stats");
         printTime((long) statistics.getAverage());
 
     }
@@ -94,18 +97,25 @@ public class RangeScanTester {
         LocalDateTime dateTime = LocalDateTime.now();
         for (int i = 1; i <= 100; i++) {
             start = System.nanoTime();
-            String eR = dateTime.getDayOfMonth() + "/" + dateTime.getMonth().getValue() + "/" + dateTime.getYear();
+            String eR = sanitizeDay(dateTime.getDayOfMonth()) + "/" + dateTime.getMonth().getValue() + "/" + dateTime.getYear();
             dateTime = dateTime.minusDays(1);
-            String sR = dateTime.getDayOfMonth() + "/" + dateTime.getMonth().getValue() + "/" + dateTime.getYear();
+            String sR = sanitizeDay(dateTime.getDayOfMonth()) + "/" + dateTime.getMonth().getValue() + "/" + dateTime.getYear();
             System.out.println("Range : [" + sR + " - " + eR + "]");
-            NavigableSet<String> result = ns.subSet(sR, true, eR, true);
+            NavigableSet<String> result = new TreeSet<>();
+            try {
+                result = ns.subSet(sR, true, eR, true);
+            } catch (Exception e) {
+
+            }
             long time = System.nanoTime() - start;
             printTime(time);
             times.add(time);
+            System.out.println(result);
             System.out.println("Result Size : " + result.size());
         }
 
         IntSummaryStatistics statistics = times.stream().mapToInt(Long::intValue).summaryStatistics();
+        System.out.println("Average Stats");
         printTime((long) statistics.getAverage());
 
         System.out.println("-----------------------");
@@ -116,8 +126,8 @@ public class RangeScanTester {
         List<String> dates = getDates();
         List<String> values = new ArrayList<>();
         for (String date : dates) {
-            for (int i = 1; i <= 10000; i++) {
-                values.add(date + generateRandomStringOfSize(30));
+            for (int i = 1; i <= 10; i++) {
+                values.add(date + ":" + generateRandomStringOfSize(30));
             }
         }
         return values;
@@ -141,10 +151,15 @@ public class RangeScanTester {
         LocalDateTime dateTime = LocalDateTime.now();
         List<String> dateStrings = new ArrayList<>();
         for (int i = 1; i <= 300; i++) {
-            dateStrings.add(dateTime.getDayOfMonth() + "/" + dateTime.getMonth().getValue() + "/" + dateTime.getYear());
+            dateStrings.add(sanitizeDay(dateTime.getDayOfMonth()) + "/" + dateTime.getMonth().getValue() + "/" + dateTime.getYear());
             dateTime = dateTime.minusDays(1);
         }
         return dateStrings;
+    }
+
+    private static String sanitizeDay(int d) {
+        String day = String.valueOf(d);
+        return day.length() == 1 ? "0" + day : day;
     }
 
 
