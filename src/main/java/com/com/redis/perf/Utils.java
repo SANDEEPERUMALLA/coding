@@ -1,6 +1,7 @@
 package com.com.redis.perf;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Utils {
 
@@ -11,9 +12,19 @@ public class Utils {
         return month + "/" + day + "/" + year;
     }
 
-    public static String sanitize(int d) {
+    private static String sanitize(int d) {
         String day = String.valueOf(d);
         return day.length() == 1 ? "0" + day : day;
+    }
+
+    public static String generateRandomStringOfSize(int size) {
+        String s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder str = new StringBuilder();
+        ThreadLocalRandom threadLocalRandom = ThreadLocalRandom.current();
+        for (int i = 1; i <= size; i++) {
+            str.append(s.charAt(threadLocalRandom.nextInt(0, s.length() - 1)));
+        }
+        return str.toString();
     }
 
 }

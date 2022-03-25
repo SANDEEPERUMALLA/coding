@@ -10,6 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static com.com.redis.perf.Logger.log;
+import static com.com.redis.perf.Utils.generateRandomStringOfSize;
+import static com.com.redis.perf.Utils.getDateString;
+
 public class Main {
 
 
@@ -29,15 +33,9 @@ public class Main {
     }
 
     private static void setup(Jedis jedis) {
-        System.out.println("-----------------------");
-        System.out.println("REDIS OPS");
-        System.out.println("DELETING SORTED SET");
+        log("Deleting set");
         jedis.del("set1");
-        List<String> values = setupData();
-        insertDataIntoRedisSortedSet(values, jedis);
-    }
 
-    private static List<String> setupData() {
         List<String> dates = getDates();
         List<String> values = new ArrayList<>();
         for (String date : dates) {
@@ -45,8 +43,10 @@ public class Main {
                 values.add(date + ":" + generateRandomStringOfSize(18));
             }
         }
-        return values;
+
+        insertDataIntoRedisSortedSet(values, jedis);
     }
+
 
     private static void insertDataIntoRedisSortedSet(List<String> values, Jedis jedis) {
         Map<String, Double> redisSortedSetMap = new HashMap<>();
@@ -77,29 +77,6 @@ public class Main {
         }
         return dateStrings;
     }
-
-    private static String getDateString(LocalDateTime localDateTime) {
-        String month = sanitize(localDateTime.getMonth().getValue());
-        String day = sanitize(localDateTime.getDayOfMonth());
-        String year = String.valueOf(localDateTime.getYear());
-        return month + "/" + day + "/" + year;
-    }
-
-    private static String generateRandomStringOfSize(int size) {
-        String s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        StringBuilder str = new StringBuilder();
-        ThreadLocalRandom threadLocalRandom = ThreadLocalRandom.current();
-        for (int i = 1; i <= size; i++) {
-            str.append(s.charAt(threadLocalRandom.nextInt(0, s.length() - 1)));
-        }
-        return str.toString();
-    }
-
-    private static String sanitize(int d) {
-        String day = String.valueOf(d);
-        return day.length() == 1 ? "0" + day : day;
-    }
-
 
 
 }
