@@ -40,8 +40,10 @@ public class Main {
     private static void printRunStats(List<RedisSortedSetUser> users, long start, long end) {
         long totalRunTime = TimeUnit.MILLISECONDS.toSeconds(end - start);
         log("Total Run Time in secs: " + totalRunTime);
+
         long totalOps = 0L;
         List<Long> latencies = new ArrayList<>();
+
         for (RedisSortedSetUser user : users) {
             totalOps += user.getNoOfOps();
             log(user.getName() + ": " + user.getNoOfOps());
@@ -57,11 +59,15 @@ public class Main {
         setupSetData(jedis);
     }
 
+    private static void setupKVData() {
+
+    }
+
     private static void setupSetData(Jedis jedis) {
         log("Deleting set");
         jedis.del("set1");
 
-        List<String> dates = getDates();
+        List<String> dates = getDateStringsForLastNDays(300);
         List<String> values = new ArrayList<>();
         for (String date : dates) {
             for (int i = 1; i <= 10000; i++) {
@@ -93,16 +99,5 @@ public class Main {
     private static void addValuesToSet(Map<String, Double> redisSortedSetMap, Jedis jedis) {
         jedis.zadd("set1", redisSortedSetMap);
     }
-
-    private static List<String> getDates() {
-        LocalDateTime dateTime = LocalDateTime.now();
-        List<String> dateStrings = new ArrayList<>();
-        for (int i = 1; i <= 300; i++) {
-            dateStrings.add(getDateString(dateTime));
-            dateTime = dateTime.minusDays(1);
-        }
-        return dateStrings;
-    }
-
 
 }

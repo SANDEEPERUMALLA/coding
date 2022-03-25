@@ -35,6 +35,7 @@ public class RedisSortedSetUser extends Thread {
                 log("Range : [" + sR + " - " + eR + "]");
                 Set<String> result = jedis.zrangeByLex("set1", "[" + sR, "[" + eR);
                 long time = System.nanoTime() - start;
+                log("ZRange Op Time: " + time);
                 latencies.add(time);
                 log("Result Size : " + result.size());
                 noOfOps++;

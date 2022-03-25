@@ -3,6 +3,7 @@ package com.com.redis.perf;
 import com.google.common.math.Stats;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -54,6 +55,16 @@ public class Utils {
 
     private static void printTime(long timeInNs) {
         printTime("Time: ", timeInNs);
+    }
+
+    public static List<String> getDateStringsForLastNDays(int n) {
+        LocalDateTime dateTime = LocalDateTime.now();
+        List<String> dateStrings = new ArrayList<>();
+        for (int i = 1; i <= n; i++) {
+            dateStrings.add(getDateString(dateTime));
+            dateTime = dateTime.minusDays(1);
+        }
+        return dateStrings;
     }
 
 
