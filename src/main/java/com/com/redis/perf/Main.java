@@ -47,6 +47,8 @@ public class Main {
             log(user.getName() + ": " + user.getNoOfOps());
             latencies.addAll(user.getLatencies());
         }
+
+        log("Total no of ops: " + totalOps);
         log("Throughout per sec: " + (totalOps / totalRunTime));
         printStats(latencies);
     }
