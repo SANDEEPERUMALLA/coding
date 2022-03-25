@@ -27,7 +27,7 @@ public class RedisSortedSetUser extends Thread {
     public void run() {
         while (!stop) {
             LocalDateTime dateTime = LocalDateTime.now();
-            for (int i = 1; i <= 200; i++) {
+            for (int i = 1; i <= 300; i++) {
                 long start = System.nanoTime();
                 String eR = getDateString(dateTime);
                 dateTime = dateTime.minusDays(1);
