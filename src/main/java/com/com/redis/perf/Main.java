@@ -18,9 +18,9 @@ public class Main {
         Jedis jedis = new Jedis(URI.create("redis://localhost:6379"));
         setup(jedis);
         long start = System.currentTimeMillis();
-        RedisUser user1 = new RedisUser(1);
-        RedisUser user2 = new RedisUser(2);
-        RedisUser user3 = new RedisUser(3);
+        RedisSortedSetUser user1 = new RedisSortedSetUser(1);
+        RedisSortedSetUser user2 = new RedisSortedSetUser(2);
+        RedisSortedSetUser user3 = new RedisSortedSetUser(3);
         user1.start();
         user2.start();
         user3.start();
@@ -31,22 +31,26 @@ public class Main {
         user1.join();
         user2.join();
         user3.join();
-        List<RedisUser> users = List.of(user1, user2, user3);
+        List<RedisSortedSetUser> users = List.of(user1, user2, user3);
         printRunStats(users);
         long end = System.currentTimeMillis();
         log("Total Run Time" + (end - start));
     }
 
-    private static void printRunStats(List<RedisUser> users) {
+    private static void printRunStats(List<RedisSortedSetUser> users) {
         List<Long> latencies = new ArrayList<>();
-        for(RedisUser user : users) {
-            log(user.getName() + ":" + user.getNoOfOps());
+        for (RedisSortedSetUser user : users) {
+            log(user.getName() + ": " + user.getNoOfOps());
             latencies.addAll(user.getLatencies());
         }
         printStats(latencies);
     }
 
     private static void setup(Jedis jedis) {
+        setupSetData(jedis);
+    }
+
+    private static void setupSetData(Jedis jedis) {
         log("Deleting set");
         jedis.del("set1");
 

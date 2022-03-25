@@ -10,17 +10,15 @@ import java.util.Set;
 
 import static com.com.redis.perf.Logger.log;
 import static com.com.redis.perf.Utils.getDateString;
-import static com.com.redis.perf.Utils.printStats;
 
-public class RedisUser extends Thread {
+public class RedisSortedSetUser extends Thread {
 
     private final Jedis jedis;
-
     private boolean stop = false;
     private long noOfOps = 0;
     List<Long> latencies = new ArrayList<>();
 
-    public RedisUser(int userId) {
+    public RedisSortedSetUser(int userId) {
         super("redis-user" + userId);
         this.jedis = new Jedis(URI.create("redis://localhost:6379"));
     }

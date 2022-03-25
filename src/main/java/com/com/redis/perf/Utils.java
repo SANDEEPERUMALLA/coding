@@ -12,6 +12,8 @@ import static com.google.common.math.Quantiles.percentiles;
 
 public class Utils {
 
+    private Utils(){}
+
     public static String getDateString(LocalDateTime localDateTime) {
         String month = sanitize(localDateTime.getMonth().getValue());
         String day = sanitize(localDateTime.getDayOfMonth());
@@ -39,7 +41,7 @@ public class Utils {
         double p90 = percentiles().index(90).compute(times);
         double p50 = percentiles().index(50).compute(times);
         double average = Stats.meanOf(times);
-        log("Stats: ");
+        log("Stats");
         printTime("P99", (long) p99);
         printTime("P90", (long) p90);
         printTime("P50", (long) p50);
