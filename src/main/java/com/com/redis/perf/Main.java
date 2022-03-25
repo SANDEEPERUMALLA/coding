@@ -16,15 +16,17 @@ public class Main {
     public static void main(String[] args) throws InterruptedException {
         Jedis jedis = new Jedis(URI.create("redis://localhost:6379"));
         setup(jedis);
-        RedisUser1 user1 = new RedisUser1(jedis);
-        RedisUser2 user2 = new RedisUser2(jedis);
+        RedisUser user1 = new RedisUser(1);
+        RedisUser user2 = new RedisUser(2);
+        RedisUser user3 = new RedisUser(3);
         user1.start();
         user2.start();
+        user3.start();
         Thread.sleep(60000);
         user1.stopThread();
         user2.stopThread();
+        user3.stopThread();
     }
-
 
     private static void setup(Jedis jedis) {
         System.out.println("-----------------------");
