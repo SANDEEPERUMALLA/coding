@@ -8,30 +8,31 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
+
 public class RangeScanTester {
 
-    private static Jedis jedis;
+    private static final Jedis jedis;
+    private static final int NO_OF_READ_OPS = 1000;
 
     static {
         jedis = new Jedis(URI.create("redis://localhost:6379"));
-
     }
 
     public static void main(String[] args) {
-        redisZRangeTest();
+        testRedisZRange();
         testNavigationSet();
     }
 
-    private static void redisZRangeTest() {
-        print("-----------------------");
-        print("REDIS OPS");
+    private static void testRedisZRange() {
+        log("-----------------------");
         jedis.del("set1");
+        log("REDIS OPS");
         List<String> values = setupData();
-        print("REDIS INSERT OP");
+        log("REDIS INSERT OP");
         insertDataIntoRedisSortedSet(values);
-        print("REDIS READ OPS");
+        log("REDIS READ OPS");
         readDataFromSortedSet();
-        print("-----------------------");
+        log("-----------------------");
     }
 
     private static void insertDataIntoRedisSortedSet(List<String> values) {
@@ -41,14 +42,14 @@ public class RangeScanTester {
         long start = System.nanoTime();
         for (String value : values) {
             if (count == batchSize) {
-                addValuesToSet(jedis, redisSortedSetMap);
+                addValuesToSet(redisSortedSetMap);
                 redisSortedSetMap.clear();
                 count = 0;
             }
             redisSortedSetMap.put(value, 0d);
             count++;
         }
-        addValuesToSet(jedis, redisSortedSetMap);
+        addValuesToSet(redisSortedSetMap);
 
         long end = System.nanoTime();
         printTime(end - start);
@@ -57,47 +58,48 @@ public class RangeScanTester {
     private static void readDataFromSortedSet() {
         LocalDateTime dateTime = LocalDateTime.now();
         List<Long> times = new ArrayList<>();
-        for (int i = 1; i <= 100; i++) {
+        for (int i = 1; i <= NO_OF_READ_OPS; i++) {
             long start = System.nanoTime();
             String eR = getDateString(dateTime);
             dateTime = dateTime.minusDays(1);
             String sR = getDateString(dateTime);
-            print("Range : [" + sR + " - " + eR + "]");
+            log("Range : [" + sR + " - " + eR + "]");
             Set<String> result = jedis.zrangeByLex("set1", "[" + sR, "[" + eR);
             long time = System.nanoTime() - start;
             printTime(time);
             times.add(time);
-            print("Result Size : " + result.size());
+            log("Result Size : " + result.size());
         }
 
         IntSummaryStatistics statistics = times.stream().mapToInt(Long::intValue).summaryStatistics();
-        print("Average Stats");
-        printTime((long) statistics.getAverage());
+        log("Stats: ");
+        log("No Of Operations: " + NO_OF_READ_OPS);
+        printTime("Average Time:" , ((long) statistics.getAverage()));
     }
 
-    private static void addValuesToSet(Jedis jedis, Map<String, Double> redisSortedSetMap) {
+    private static void addValuesToSet(Map<String, Double> redisSortedSetMap) {
         jedis.zadd("set1", redisSortedSetMap);
     }
 
     private static void testNavigationSet() {
-        print("-----------------------");
-        print("NAVSET OPS");
+        log("-----------------------");
+        log("NAVSET OPS");
         List<String> values = setupData();
-        print("NAVSET INSERT OP");
+        log("NAVSET INSERT OP");
         long start = System.nanoTime();
         NavigableSet<String> ns = new TreeSet<>(values);
         printTime(System.nanoTime() - start);
-        print("Size : " + ns.size());
+        log("Size : " + ns.size());
 
-        print("NAVSET READ OPS");
+        log("NAVSET READ OPS");
         List<Long> times = new ArrayList<>();
         LocalDateTime dateTime = LocalDateTime.now();
-        for (int i = 1; i <= 100; i++) {
+        for (int i = 1; i <= NO_OF_READ_OPS; i++) {
             start = System.nanoTime();
             String eR = getDateString(dateTime);
             dateTime = dateTime.minusDays(1);
             String sR = getDateString(dateTime);
-            print("Range : [" + sR + " - " + eR + "]");
+            log("Range : [" + sR + " - " + eR + "]");
             NavigableSet<String> result = new TreeSet<>();
             try {
                 result = ns.subSet(sR, true, eR, true);
@@ -107,15 +109,15 @@ public class RangeScanTester {
             long time = System.nanoTime() - start;
             printTime(time);
             times.add(time);
-            print("Result Size : " + result.size());
+            log("Result Size : " + result.size());
         }
 
         IntSummaryStatistics statistics = times.stream().mapToInt(Long::intValue).summaryStatistics();
-        print("Average Stats");
-        printTime((long) statistics.getAverage());
+        log("Stats: ");
+        log("No Of Operations: " + NO_OF_READ_OPS);
+        printTime("Average Time:" , ((long) statistics.getAverage()));
 
-        print("-----------------------");
-
+        log("-----------------------");
     }
 
     private static List<String> setupData() {
@@ -139,8 +141,12 @@ public class RangeScanTester {
         return str.toString();
     }
 
+    private static void printTime(String timeIdentifier, long timeInNs) {
+        log(timeIdentifier + ": " + TimeUnit.NANOSECONDS.toMillis(timeInNs) + " ms," + TimeUnit.NANOSECONDS.toMicros(timeInNs) + "us");
+    }
+
     private static void printTime(long timeInNs) {
-        print("Time: " + TimeUnit.NANOSECONDS.toMillis(timeInNs) + " ms," + TimeUnit.NANOSECONDS.toMicros(timeInNs) + "us");
+        printTime("Time: ", timeInNs);
     }
 
     private static List<String> getDates() {
@@ -158,7 +164,7 @@ public class RangeScanTester {
         return day.length() == 1 ? "0" + day : day;
     }
 
-    private static void print(String message) {
+    private static void log(String message) {
         System.out.println(message);
     }
 
@@ -168,6 +174,5 @@ public class RangeScanTester {
         String year = String.valueOf(localDateTime.getYear());
         return month + "/" + day + "/" + year;
     }
-
 
 }
