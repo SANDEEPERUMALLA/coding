@@ -59,9 +59,9 @@ public class RangeScanTester {
         List<Long> times = new ArrayList<>();
         for (int i = 1; i <= 100; i++) {
             long start = System.nanoTime();
-            String eR = sanitizeDay(dateTime.getDayOfMonth()) + "/" + dateTime.getMonth().getValue() + "/" + dateTime.getYear();
+            String eR = getDateString(dateTime);
             dateTime = dateTime.minusDays(1);
-            String sR = sanitizeDay(dateTime.getDayOfMonth()) + "/" + dateTime.getMonth().getValue() + "/" + dateTime.getYear();
+            String sR = getDateString(dateTime);
             print("Range : [" + sR + " - " + eR + "]");
             Set<String> result = jedis.zrangeByLex("set1", "[" + sR, "[" + eR);
             long time = System.nanoTime() - start;
@@ -94,9 +94,9 @@ public class RangeScanTester {
         LocalDateTime dateTime = LocalDateTime.now();
         for (int i = 1; i <= 100; i++) {
             start = System.nanoTime();
-            String eR = sanitizeDay(dateTime.getDayOfMonth()) + "/" + dateTime.getMonth().getValue() + "/" + dateTime.getYear();
+            String eR = getDateString(dateTime);
             dateTime = dateTime.minusDays(1);
-            String sR = sanitizeDay(dateTime.getDayOfMonth()) + "/" + dateTime.getMonth().getValue() + "/" + dateTime.getYear();
+            String sR = getDateString(dateTime);
             print("Range : [" + sR + " - " + eR + "]");
             NavigableSet<String> result = new TreeSet<>();
             try {
@@ -147,7 +147,7 @@ public class RangeScanTester {
         LocalDateTime dateTime = LocalDateTime.now();
         List<String> dateStrings = new ArrayList<>();
         for (int i = 1; i <= 300; i++) {
-            dateStrings.add(sanitizeDay(dateTime.getDayOfMonth()) + "/" + dateTime.getMonth().getValue() + "/" + dateTime.getYear());
+            dateStrings.add(getDateString(dateTime));
             dateTime = dateTime.minusDays(1);
         }
         return dateStrings;
@@ -160,6 +160,13 @@ public class RangeScanTester {
 
     private static void print(String message) {
         System.out.println(message);
+    }
+
+    private static String getDateString(LocalDateTime localDateTime) {
+        String month = sanitizeDay(localDateTime.getMonth().getValue());
+        String day = sanitizeDay(localDateTime.getDayOfMonth());
+        String year = String.valueOf(localDateTime.getYear());
+        return month + "/" + day + "/" + year;
     }
 
 
