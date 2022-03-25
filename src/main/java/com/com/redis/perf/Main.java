@@ -25,7 +25,7 @@ public class Main {
         user1.start();
         user2.start();
         user3.start();
-        Thread.sleep(60000);
+        Thread.sleep(1000);
         user1.stopThread();
         user2.stopThread();
         user3.stopThread();
