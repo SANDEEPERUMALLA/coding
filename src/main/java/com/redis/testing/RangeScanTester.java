@@ -1,7 +1,6 @@
 package com.redis.testing;
 
 import com.google.common.math.Stats;
-import com.google.common.primitives.Longs;
 import redis.clients.jedis.Jedis;
 
 import java.net.URI;
@@ -9,7 +8,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static com.google.common.math.Quantiles.percentiles;
 
@@ -55,7 +53,6 @@ public class RangeScanTester {
             count++;
         }
         addValuesToSet(redisSortedSetMap);
-
         long end = System.nanoTime();
         printTime(end - start);
     }
@@ -63,6 +60,7 @@ public class RangeScanTester {
     private static void readDataFromSortedSet() {
         LocalDateTime dateTime = LocalDateTime.now();
         List<Long> times = new ArrayList<>();
+        long s = System.currentTimeMillis();
         for (int i = 1; i <= NO_OF_READ_OPS; i++) {
             long start = System.nanoTime();
             String eR = getDateString(dateTime);
@@ -76,6 +74,8 @@ public class RangeScanTester {
             log("Result Size : " + result.size());
         }
 
+        long e = System.currentTimeMillis();
+        System.out.println("Total Read Time: " + (e -s));
         log("No Of Operations: " + NO_OF_READ_OPS);
         printStats(times);
     }
@@ -142,6 +142,7 @@ public class RangeScanTester {
         printTime("P50", (long) p50);
         printTime("Average", (long) average);
     }
+
     private static String generateRandomStringOfSize(int size) {
         String s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         StringBuilder str = new StringBuilder();
