@@ -10,6 +10,7 @@ import java.util.Set;
 
 import static com.com.redis.perf.Logger.log;
 import static com.com.redis.perf.Utils.getDateString;
+import static com.com.redis.perf.Utils.printStats;
 
 public class RedisUser extends Thread {
 
@@ -17,18 +18,15 @@ public class RedisUser extends Thread {
 
     private boolean stop = false;
     private long noOfOps = 0;
+    List<Long> latencies = new ArrayList<>();
 
     public RedisUser(int userId) {
         super("redis-user" + userId);
-        this.jedis = new Jedis(URI.create("redis://localhost:6379"));;
+        this.jedis = new Jedis(URI.create("redis://localhost:6379"));
     }
 
     @Override
     public void run() {
-
-        List<Long> times = new ArrayList<>();
-        long s = System.currentTimeMillis();
-
         while (!stop) {
             LocalDateTime dateTime = LocalDateTime.now();
             for (int i = 1; i <= 200; i++) {
@@ -39,17 +37,12 @@ public class RedisUser extends Thread {
                 log("Range : [" + sR + " - " + eR + "]");
                 Set<String> result = jedis.zrangeByLex("set1", "[" + sR, "[" + eR);
                 long time = System.nanoTime() - start;
-                times.add(time);
+                latencies.add(time);
                 log("Result Size : " + result.size());
                 noOfOps++;
             }
         }
-
-        long e = System.currentTimeMillis();
-        log("Total Read Time: " + (e - s));
-        log("No Of Operations: " + noOfOps);
     }
-
 
     public void stopThread() {
         this.stop = true;
@@ -57,5 +50,9 @@ public class RedisUser extends Thread {
 
     public long getNoOfOps() {
         return noOfOps;
+    }
+
+    public List<Long> getLatencies() {
+        return latencies;
     }
 }
