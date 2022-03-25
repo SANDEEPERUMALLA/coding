@@ -27,7 +27,7 @@ public class RedisSortedSetUser extends Thread {
     public void run() {
         while (!stop) {
             LocalDateTime dateTime = LocalDateTime.now();
-            for (int i = 1; i <= 300; i++) {
+            for (int i = 1; i <= 200; i++) {
                 String eR = getDateString(dateTime);
                 dateTime = dateTime.minusDays(1);
                 String sR = getDateString(dateTime);
@@ -35,10 +35,10 @@ public class RedisSortedSetUser extends Thread {
                 long start = System.nanoTime();
                 Set<String> result = jedis.zrangeByLex("set1", "[" + sR, "[" + eR);
                 long time = System.nanoTime() - start;
+                noOfOps++;
                 log("ZRange Op Time: " + time);
                 latencies.add(time);
                 log("Result Size : " + result.size());
-                noOfOps++;
             }
         }
     }

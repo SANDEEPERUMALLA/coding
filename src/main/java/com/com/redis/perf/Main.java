@@ -19,27 +19,35 @@ public class Main {
         Jedis jedis = new Jedis(URI.create("redis://localhost:6379"));
         setup(jedis);
         long start = System.currentTimeMillis();
-        RedisSortedSetUser user1 = new RedisSortedSetUser(1);
-        RedisSortedSetUser user2 = new RedisSortedSetUser(2);
-        RedisSortedSetUser user3 = new RedisSortedSetUser(3);
-        user1.start();
-        user2.start();
-        user3.start();
-        Thread.sleep(1000);
-        user1.stopThread();
-        user2.stopThread();
-        user3.stopThread();
-        user1.join();
-        user2.join();
-        user3.join();
-        List<RedisSortedSetUser> users = List.of(user1, user2, user3);
+
+        int noOfUsers = 1;
+        List<RedisSortedSetUser> users = new ArrayList<>();
+        for (int i = 1; i <= noOfUsers; i++) {
+            RedisSortedSetUser redisSortedSetUser = new RedisSortedSetUser(i);
+            users.add(redisSortedSetUser);
+        }
+
+        for(RedisSortedSetUser user : users) {
+            user.start();
+        }
+
+        Thread.sleep(60000);
+
+        for(RedisSortedSetUser user : users) {
+            user.stopThread();
+        }
+
+        for(RedisSortedSetUser user : users) {
+            user.join();
+        }
+
         long end = System.currentTimeMillis();
         printRunStats(users, start, end);
     }
 
     private static void printRunStats(List<RedisSortedSetUser> users, long start, long end) {
-        long totalRunTime = TimeUnit.MILLISECONDS.toSeconds(end - start);
-        log("Total Run Time in secs: " + totalRunTime);
+        long totalRunTime = TimeUnit.MILLISECONDS.toMillis(end - start);
+        log("Total Run Time in ms: " + totalRunTime);
 
         long totalOps = 0L;
         List<Long> latencies = new ArrayList<>();
