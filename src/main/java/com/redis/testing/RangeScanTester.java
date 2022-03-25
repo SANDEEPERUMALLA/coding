@@ -1,5 +1,7 @@
 package com.redis.testing;
 
+import com.google.common.math.Stats;
+import com.google.common.primitives.Longs;
 import redis.clients.jedis.Jedis;
 
 import java.net.URI;
@@ -7,6 +9,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static com.google.common.math.Quantiles.percentiles;
 
 
 public class RangeScanTester {
@@ -71,10 +76,8 @@ public class RangeScanTester {
             log("Result Size : " + result.size());
         }
 
-        IntSummaryStatistics statistics = times.stream().mapToInt(Long::intValue).summaryStatistics();
-        log("Stats: ");
         log("No Of Operations: " + NO_OF_READ_OPS);
-        printTime("Average Time:" , ((long) statistics.getAverage()));
+        printStats(times);
     }
 
     private static void addValuesToSet(Map<String, Double> redisSortedSetMap) {
@@ -112,11 +115,8 @@ public class RangeScanTester {
             log("Result Size : " + result.size());
         }
 
-        IntSummaryStatistics statistics = times.stream().mapToInt(Long::intValue).summaryStatistics();
-        log("Stats: ");
         log("No Of Operations: " + NO_OF_READ_OPS);
-        printTime("Average Time:" , ((long) statistics.getAverage()));
-
+        printStats(times);
         log("-----------------------");
     }
 
@@ -131,6 +131,17 @@ public class RangeScanTester {
         return values;
     }
 
+    private static void printStats(List<Long> times) {
+        double p99 = percentiles().index(99).compute(times);
+        double p90 = percentiles().index(90).compute(times);
+        double p50 = percentiles().index(50).compute(times);
+        double average = Stats.meanOf(times);
+        log("Stats: ");
+        printTime("P99", (long) p99);
+        printTime("P90", (long) p90);
+        printTime("P50", (long) p50);
+        printTime("Average", (long) average);
+    }
     private static String generateRandomStringOfSize(int size) {
         String s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         StringBuilder str = new StringBuilder();
