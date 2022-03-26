@@ -27,7 +27,7 @@ public class GeneralRedisUser extends Thread implements RedisUser {
         while (!stop) {
             int keyIndex = threadLocalRandom.nextInt(0, 900);
             String key = "key" + keyIndex;
-            long start = System.currentTimeMillis();
+            long start = System.nanoTime();
             String value = jedis.get(key);
             long time = System.nanoTime() - start;
             noOfOps++;

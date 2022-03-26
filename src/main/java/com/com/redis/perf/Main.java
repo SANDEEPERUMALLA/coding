@@ -34,7 +34,6 @@ public class Main {
             generalRedisUsers.add(generalRedisUser);
         }
 
-
         for (RedisSortedSetUser user : sortedSetUsers) {
             user.start();
         }
