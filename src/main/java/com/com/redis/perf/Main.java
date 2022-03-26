@@ -3,7 +3,6 @@ package com.com.redis.perf;
 import redis.clients.jedis.Jedis;
 
 import java.net.URI;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,9 +16,10 @@ import static com.com.redis.perf.Utils.*;
 
 public class Main {
 
-    private final static int RUN_TIME_ON_SECS = 60;
+    private static final int RUN_TIME_ON_SECS = 5;
 
     public static void main(String[] args) throws InterruptedException {
+        log(String.valueOf(System.currentTimeMillis()));
         Jedis jedis = new Jedis(URI.create("redis://localhost:6379"));
         setup(jedis);
         long start = System.currentTimeMillis();
@@ -44,9 +44,12 @@ public class Main {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
         tasks.forEach(executorService::submit);
 
-        Thread.sleep(RUN_TIME_ON_SECS * 1000);
+        Thread.sleep(RUN_TIME_ON_SECS * 1000L);
         executorService.shutdownNow();
-        executorService.awaitTermination(2000, TimeUnit.SECONDS);
+        boolean shutdown = executorService.awaitTermination(2000, TimeUnit.SECONDS);
+        if(shutdown) {
+            log("Executor Service shutdown successful");
+        }
 
         long end = System.currentTimeMillis();
         printRunStats(sortedSetUsers, start, end);
