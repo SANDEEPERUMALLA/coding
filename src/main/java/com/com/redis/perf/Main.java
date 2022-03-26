@@ -20,7 +20,7 @@ public class Main {
         setup(jedis);
         long start = System.currentTimeMillis();
 
-        int noOfUsers = 1;
+        int noOfUsers = 3;
         List<RedisSortedSetUser> users = new ArrayList<>();
         for (int i = 1; i <= noOfUsers; i++) {
             RedisSortedSetUser redisSortedSetUser = new RedisSortedSetUser(i);
