@@ -20,29 +20,48 @@ public class Main {
         setup(jedis);
         long start = System.currentTimeMillis();
 
-        int noOfUsers = 3;
-        List<RedisSortedSetUser> users = new ArrayList<>();
-        for (int i = 1; i <= noOfUsers; i++) {
+        int noOfSortedSetUsers = 1;
+        List<RedisSortedSetUser> sortedSetUsers = new ArrayList<>();
+        for (int i = 1; i <= noOfSortedSetUsers; i++) {
             RedisSortedSetUser redisSortedSetUser = new RedisSortedSetUser(i);
-            users.add(redisSortedSetUser);
+            sortedSetUsers.add(redisSortedSetUser);
         }
 
-        for(RedisSortedSetUser user : users) {
+        for (RedisSortedSetUser user : sortedSetUsers) {
+            user.start();
+        }
+
+        int nofGeneralUsers = 3;
+        List<GeneralRedisUser> generalRedisUsers = new ArrayList<>();
+        for (int i = 1; i <= nofGeneralUsers; i++) {
+            GeneralRedisUser generalRedisUser = new GeneralRedisUser(i);
+            generalRedisUsers.add(generalRedisUser);
+        }
+
+        for (GeneralRedisUser user : generalRedisUsers) {
             user.start();
         }
 
         Thread.sleep(60000);
 
-        for(RedisSortedSetUser user : users) {
+        for (RedisSortedSetUser user : sortedSetUsers) {
             user.stopThread();
         }
 
-        for(RedisSortedSetUser user : users) {
+        for (GeneralRedisUser user : generalRedisUsers) {
+            user.stopThread();
+        }
+
+        for (RedisSortedSetUser user : sortedSetUsers) {
+            user.join();
+        }
+
+        for (GeneralRedisUser user : generalRedisUsers) {
             user.join();
         }
 
         long end = System.currentTimeMillis();
-        printRunStats(users, start, end);
+        printRunStats(sortedSetUsers, start, end);
     }
 
     private static void printRunStats(List<RedisSortedSetUser> users, long start, long end) {
@@ -65,10 +84,16 @@ public class Main {
 
     private static void setup(Jedis jedis) {
         setupSetData(jedis);
+        setupKVData(jedis);
     }
 
-    private static void setupKVData() {
+    private static void setupKVData(Jedis jedis) {
 
+        for (int i = 0; i <= 10000; i++) {
+            String key = "key" + i;
+            String value = generateRandomStringOfSize(10000);
+            jedis.set(key, value);
+        }
     }
 
     private static void setupSetData(Jedis jedis) {
