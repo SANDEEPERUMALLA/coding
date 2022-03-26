@@ -11,7 +11,7 @@ import java.util.Set;
 import static com.com.redis.perf.Logger.log;
 import static com.com.redis.perf.Utils.getDateString;
 
-public class RedisSortedSetUser extends Thread {
+public class RedisSortedSetUser extends Thread implements RedisUser {
 
     private final Jedis jedis;
     private boolean stop = false;
@@ -47,10 +47,12 @@ public class RedisSortedSetUser extends Thread {
         this.stop = true;
     }
 
+    @Override
     public long getNoOfOps() {
         return noOfOps;
     }
 
+    @Override
     public List<Long> getLatencies() {
         return latencies;
     }

@@ -27,15 +27,16 @@ public class Main {
             sortedSetUsers.add(redisSortedSetUser);
         }
 
-        for (RedisSortedSetUser user : sortedSetUsers) {
-            user.start();
-        }
-
         int nofGeneralUsers = 3;
         List<GeneralRedisUser> generalRedisUsers = new ArrayList<>();
         for (int i = 1; i <= nofGeneralUsers; i++) {
             GeneralRedisUser generalRedisUser = new GeneralRedisUser(i);
             generalRedisUsers.add(generalRedisUser);
+        }
+
+
+        for (RedisSortedSetUser user : sortedSetUsers) {
+            user.start();
         }
 
         for (GeneralRedisUser user : generalRedisUsers) {
@@ -62,6 +63,7 @@ public class Main {
 
         long end = System.currentTimeMillis();
         printRunStats(sortedSetUsers, start, end);
+        printRunStatsGeneral(generalRedisUsers, start, end);
     }
 
     private static void printRunStats(List<RedisSortedSetUser> users, long start, long end) {
@@ -71,7 +73,25 @@ public class Main {
         long totalOps = 0L;
         List<Long> latencies = new ArrayList<>();
 
-        for (RedisSortedSetUser user : users) {
+        for (RedisUser user : users) {
+            totalOps += user.getNoOfOps();
+            log(user.getName() + ": " + user.getNoOfOps());
+            latencies.addAll(user.getLatencies());
+        }
+
+        log("Total no of ops: " + totalOps);
+        log("Throughout per sec: " + (totalOps / totalRunTime));
+        printStats(latencies);
+    }
+
+    private static void printRunStatsGeneral(List<GeneralRedisUser> users, long start, long end) {
+        long totalRunTime = TimeUnit.MILLISECONDS.toMillis(end - start);
+        log("Total Run Time in ms: " + totalRunTime);
+
+        long totalOps = 0L;
+        List<Long> latencies = new ArrayList<>();
+
+        for (GeneralRedisUser user : users) {
             totalOps += user.getNoOfOps();
             log(user.getName() + ": " + user.getNoOfOps());
             latencies.addAll(user.getLatencies());

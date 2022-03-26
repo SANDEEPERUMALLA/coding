@@ -3,16 +3,13 @@ package com.com.redis.perf;
 import redis.clients.jedis.Jedis;
 
 import java.net.URI;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.com.redis.perf.Logger.log;
-import static com.com.redis.perf.Utils.getDateString;
 
-public class GeneralRedisUser extends Thread {
+public class GeneralRedisUser extends Thread implements RedisUser {
 
     private final Jedis jedis;
     private long noOfOps = 0;
@@ -45,10 +42,12 @@ public class GeneralRedisUser extends Thread {
         this.stop = true;
     }
 
+    @Override
     public long getNoOfOps() {
         return noOfOps;
     }
 
+    @Override
     public List<Long> getLatencies() {
         return latencies;
     }
