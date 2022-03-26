@@ -66,7 +66,7 @@ public class Main {
     }
 
     private static void printRunStats(List<RedisSortedSetUser> users, long start, long end) {
-        long totalRunTime = TimeUnit.MILLISECONDS.toMillis(end - start);
+        long totalRunTime = TimeUnit.MILLISECONDS.toSeconds(end - start);
         log("Total Run Time in ms: " + totalRunTime);
 
         long totalOps = 0L;
@@ -84,7 +84,7 @@ public class Main {
     }
 
     private static void printRunStatsGeneral(List<GeneralRedisUser> users, long start, long end) {
-        long totalRunTime = TimeUnit.MILLISECONDS.toMillis(end - start);
+        long totalRunTime = TimeUnit.MILLISECONDS.toSeconds(end - start);
         log("Total Run Time in ms: " + totalRunTime);
 
         long totalOps = 0L;
@@ -108,9 +108,9 @@ public class Main {
 
     private static void setupKVData(Jedis jedis) {
 
-        for (int i = 0; i <= 10000; i++) {
+        for (int i = 0; i <= 10_000; i++) {
             String key = "key" + i;
-            String value = generateRandomStringOfSize(10000);
+            String value = generateRandomStringOfSize(50_000);
             jedis.set(key, value);
         }
     }
