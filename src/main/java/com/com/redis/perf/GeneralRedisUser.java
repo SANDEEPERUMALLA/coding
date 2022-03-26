@@ -24,6 +24,7 @@ public class GeneralRedisUser implements RedisUser {
 
     @Override
     public void run() {
+        Thread.currentThread().setName(getName());
         ThreadLocalRandom threadLocalRandom = ThreadLocalRandom.current();
         while (!Thread.currentThread().isInterrupted()) {
             int keyIndex = threadLocalRandom.nextInt(0, 900);

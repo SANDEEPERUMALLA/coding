@@ -6,6 +6,6 @@ public class Logger {
     }
 
     public static void log(String message) {
-        System.out.println(Thread.currentThread().getName() + " - " + message);
+        System.out.println(System.currentTimeMillis() + " : " + Thread.currentThread().getName() + " - " + message);
     }
 }

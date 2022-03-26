@@ -26,6 +26,7 @@ public class RedisSortedSetUser implements RedisUser {
 
     @Override
     public void run() {
+        Thread.currentThread().setName(getName());
         while (!Thread.currentThread().isInterrupted()) {
             LocalDateTime dateTime = LocalDateTime.now();
             for (int i = 1; i <= 200; i++) {
