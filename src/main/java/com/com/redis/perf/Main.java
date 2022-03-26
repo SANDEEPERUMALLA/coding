@@ -20,14 +20,14 @@ public class Main {
         setup(jedis);
         long start = System.currentTimeMillis();
 
-        int noOfSortedSetUsers = 3;
+        int noOfSortedSetUsers = 1;
         List<RedisSortedSetUser> sortedSetUsers = new ArrayList<>();
         for (int i = 1; i <= noOfSortedSetUsers; i++) {
             RedisSortedSetUser redisSortedSetUser = new RedisSortedSetUser(i);
             sortedSetUsers.add(redisSortedSetUser);
         }
 
-        int nofGeneralUsers = 3;
+        int nofGeneralUsers = 1;
         List<GeneralRedisUser> generalRedisUsers = new ArrayList<>();
         for (int i = 1; i <= nofGeneralUsers; i++) {
             GeneralRedisUser generalRedisUser = new GeneralRedisUser(i);
@@ -67,7 +67,7 @@ public class Main {
 
     private static void printRunStats(List<RedisSortedSetUser> users, long start, long end) {
         long totalRunTime = TimeUnit.MILLISECONDS.toSeconds(end - start);
-        log("Total Run Time in ms: " + totalRunTime);
+        log("Total Run Time in secs: " + totalRunTime);
 
         long totalOps = 0L;
         List<Long> latencies = new ArrayList<>();
@@ -85,7 +85,7 @@ public class Main {
 
     private static void printRunStatsGeneral(List<GeneralRedisUser> users, long start, long end) {
         long totalRunTime = TimeUnit.MILLISECONDS.toSeconds(end - start);
-        log("Total Run Time in ms: " + totalRunTime);
+        log("Total Run Time in secs: " + totalRunTime);
 
         long totalOps = 0L;
         List<Long> latencies = new ArrayList<>();
