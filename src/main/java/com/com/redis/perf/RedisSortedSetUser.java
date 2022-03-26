@@ -11,21 +11,22 @@ import java.util.Set;
 import static com.com.redis.perf.Logger.log;
 import static com.com.redis.perf.Utils.getDateString;
 
-public class RedisSortedSetUser extends Thread implements RedisUser {
+public class RedisSortedSetUser implements RedisUser {
 
     private final Jedis jedis;
-    private boolean stop = false;
     private long noOfOps = 0;
     List<Long> latencies = new ArrayList<>();
+    private final int userId;
+    private static final String REDIS_SORTED_USER_FORMAT = "redis-sorted-set-user";
 
     public RedisSortedSetUser(int userId) {
-        super("redis-sorted-set-user" + userId);
+        this.userId = userId;
         this.jedis = new Jedis(URI.create("redis://localhost:6379"));
     }
 
     @Override
     public void run() {
-        while (!stop) {
+        while (!Thread.currentThread().isInterrupted()) {
             LocalDateTime dateTime = LocalDateTime.now();
             for (int i = 1; i <= 200; i++) {
                 String eR = getDateString(dateTime);
@@ -43,10 +44,6 @@ public class RedisSortedSetUser extends Thread implements RedisUser {
         }
     }
 
-    public void stopThread() {
-        this.stop = true;
-    }
-
     @Override
     public long getNoOfOps() {
         return noOfOps;
@@ -55,5 +52,15 @@ public class RedisSortedSetUser extends Thread implements RedisUser {
     @Override
     public List<Long> getLatencies() {
         return latencies;
+    }
+
+    @Override
+    public String getName() {
+        return REDIS_SORTED_USER_FORMAT + userId;
+    }
+
+    @Override
+    public String getUserType() {
+        return "SORTED_SET_USER";
     }
 }
