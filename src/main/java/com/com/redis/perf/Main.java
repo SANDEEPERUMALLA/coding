@@ -20,7 +20,7 @@ public class Main {
         setup(jedis);
         long start = System.currentTimeMillis();
 
-        int noOfSortedSetUsers = 1;
+        int noOfSortedSetUsers = 3;
         List<RedisSortedSetUser> sortedSetUsers = new ArrayList<>();
         for (int i = 1; i <= noOfSortedSetUsers; i++) {
             RedisSortedSetUser redisSortedSetUser = new RedisSortedSetUser(i);
@@ -107,7 +107,6 @@ public class Main {
     }
 
     private static void setupKVData(Jedis jedis) {
-
         for (int i = 0; i <= 10_000; i++) {
             String key = "key" + i;
             String value = generateRandomStringOfSize(50_000);
