@@ -1,6 +1,6 @@
 package com.kyro.testing;
 
-public class KyroTester {
+public class KryoTester {
     public static void main(String[] args) {
 
     }
