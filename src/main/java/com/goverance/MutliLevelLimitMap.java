@@ -20,10 +20,13 @@ public class MutliLevelLimitMap {
 
         TopLevelLimitData topLevelLimitData = new TopLevelLimitData("", 100000);
 
+        System.out.println("List of tenants !!!");
+
         clientIds.forEach(clientId -> {
             namespaces.forEach(namespace -> {
                 subNamespaces.forEach(subNamespace -> {
                     tenants.forEach(tenant -> {
+                        System.out.println(String.join(":", clientId, namespace, subNamespace, tenant));
                         int keyCount = 10;
                         IntStream.rangeClosed(1, keyCount).forEach(e -> {
                             String key = RandomStringUtils.randomAlphabetic(10);
@@ -49,6 +52,10 @@ public class MutliLevelLimitMap {
                 });
             });
         });
+
+        System.out.println();
+        System.out.println();
+        System.out.println();
 
         List<Pair<String, Long>> limits = List.of(
                 Pair.of("c1", 200L),
