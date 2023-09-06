@@ -11,9 +11,10 @@ import java.util.stream.IntStream;
 public class MutliLevelLimitMap {
 
     public static void main(String[] args) {
-//        List<String> clientIds = List.of("c1", "c2");
-        List<String> clientIds = List.of("c1");
-        List<String> namespaces = List.of("ns1", "ns2", "ns3", "ns4", "ns5");
+        List<String> clientIds = List.of("c1", "c2");
+//        List<String> clientIds = List.of("c1");
+        List<String> namespaces = List.of("ns1", "ns2", "ns3");
+//        List<String> namespaces = List.of("ns1", "ns2", "ns3", "ns4", "ns5");
         List<String> subNamespaces = List.of("subns1", "subns2");
         List<String> tenants = List.of("ORG1", "ORG2", "ORG3");
 
@@ -50,16 +51,17 @@ public class MutliLevelLimitMap {
         });
 
         List<Pair<String, Long>> limits = List.of(
-//                Pair.of("c1", 200L),
-//                Pair.of("c1:ns1", 50L),
-//                Pair.of("c1:ns1:subns1", 20L),
-//                Pair.of("c1:ns2", 60L),
-//                Pair.of("c1:ns2:subns2", 40L),
-//                Pair.of("c1:ns2:subns2:ORG2", 10L),
-//                Pair.of("c1:ns2:subns2:ORG1", 10L)
-                Pair.of("c1", 100L),
-                Pair.of("c1:ns2", 20L),
-                Pair.of("c1:ns1", 20L)
+                Pair.of("c1", 200L),
+                Pair.of("c1:ns1", 50L),
+                Pair.of("c1:ns1:subns1", 20L),
+                Pair.of("c1:ns1:subns1:ORG1", 10L),
+                Pair.of("c1:ns2", 60L),
+                Pair.of("c1:ns2:subns2", 40L),
+                Pair.of("c1:ns2:subns2:ORG2", 10L),
+                Pair.of("c1:ns2:subns2:ORG1", 10L)
+//                Pair.of("c1", 100L),
+//                Pair.of("c1:ns2", 20L),
+//                Pair.of("c1:ns1", 20L)
         );
 
         limits.forEach(limit -> {
@@ -210,6 +212,14 @@ public class MutliLevelLimitMap {
     }
 
     private static void applyLimits(OrgLevelLimitData orgLevelLimitData, String clientName, String namespace, String subNamespace) {
+
+        long limit = orgLevelLimitData.getLimit();
+        if (limit != 0) {
+            List<String> tenants = new ArrayList<>();
+            tenants.add(String.join(":", clientName, namespace, subNamespace, orgLevelLimitData.getOrgName()));
+            System.out.println(String.format("Tenant list for tenant %s: %s, limit : %d", String.join(":", clientName, namespace, subNamespace, orgLevelLimitData.getOrgName()),
+                    tenants, limit));
+        }
 
     }
 
