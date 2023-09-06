@@ -167,7 +167,7 @@ public class MutliLevelLimitMap {
                     });
                 });
             });
-            System.out.println(String.format("Tenant list for namespace \"%s\": %s, limit: %d", clientLevelLimitData.getClientName(),
+            System.out.println(String.format("Tenant list for eviction for namespace \"%s\": %s, limit: %d", clientLevelLimitData.getClientName(),
                     tenants, limit));
         }
 
@@ -191,7 +191,7 @@ public class MutliLevelLimitMap {
                     tenants.add(String.join(":", clientName, namespaceLevelLimitData.getNamespace(), k, k1));
                 });
             });
-            System.out.println(String.format("Tenant list for subnamespace \"%s\": %s, limit: %d", String.join(":", clientName, namespaceLevelLimitData.getNamespace()),
+            System.out.println(String.format("Tenant list for eviction for subnamespace \"%s\": %s, limit: %d", String.join(":", clientName, namespaceLevelLimitData.getNamespace()),
                     tenants, limit));
 
         }
@@ -212,7 +212,7 @@ public class MutliLevelLimitMap {
                 }
                 tenants.add(String.join(":", clientName, namespace, subNamespaceLevelLimitData.getSubNamespace(), k));
             });
-            System.out.println(String.format("Tenant list for subnamespace \"%s\": %s, limit : %d", String.join(":", clientName, namespace, subNamespaceLevelLimitData.getSubNamespace()),
+            System.out.println(String.format("Tenant list for eviction for subnamespace \"%s\": %s, limit : %d", String.join(":", clientName, namespace, subNamespaceLevelLimitData.getSubNamespace()),
                     tenants, limit));
         }
 
@@ -224,7 +224,7 @@ public class MutliLevelLimitMap {
         if (limit != 0) {
             List<String> tenants = new ArrayList<>();
             tenants.add(String.join(":", clientName, namespace, subNamespace, orgLevelLimitData.getOrgName()));
-            System.out.println(String.format("Tenant list for tenant \"%s\": %s, limit : %d", String.join(":", clientName, namespace, subNamespace, orgLevelLimitData.getOrgName()),
+            System.out.println(String.format("Tenant list for eviction for tenant \"%s\": %s, limit : %d", String.join(":", clientName, namespace, subNamespace, orgLevelLimitData.getOrgName()),
                     tenants, limit));
         }
 
