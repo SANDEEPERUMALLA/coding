@@ -76,15 +76,13 @@ public class MutliLevelLimitMap {
 
     private static void updateLimitsDataBasedOnChildLimits(TopLevelLimitData topLevelLimitData) {
         topLevelLimitData.getClientMap().forEach((k, v) -> {
-            updateLimitsData(v);
+            updateLimitsDataBasedOnChildLimits(v);
         });
 
     }
 
-    private static void updateLimitsData(ClientLevelLimitData clientLevelLimitData) {
-        clientLevelLimitData.getNamespaceDataMap().forEach((k, v) -> {
-            updateLimitsData(v);
-        });
+    private static void updateLimitsDataBasedOnChildLimits(ClientLevelLimitData clientLevelLimitData) {
+
         AtomicLong limitToBeReduced = new AtomicLong(0);
         clientLevelLimitData.getNamespaceDataMap().forEach((k, v) -> {
             if (!clientLevelLimitData.getNamespaceListForWhichLimitIsApplicable().contains(k)) {
@@ -92,12 +90,13 @@ public class MutliLevelLimitMap {
             }
         });
         clientLevelLimitData.setLimit(clientLevelLimitData.getLimit() - limitToBeReduced.get());
+        clientLevelLimitData.getNamespaceDataMap().forEach((k, v) -> {
+            updateLimitsDataBasedOnChildLimits(v);
+        });
     }
 
-    private static void updateLimitsData(NamespaceLevelLimitData namespaceLevelLimitData) {
-        namespaceLevelLimitData.getSubNamespaceDataMap().forEach((k, v) -> {
-            updateLimitsData(v);
-        });
+    private static void updateLimitsDataBasedOnChildLimits(NamespaceLevelLimitData namespaceLevelLimitData) {
+
         AtomicLong limitToBeReduced = new AtomicLong(0);
         namespaceLevelLimitData.getSubNamespaceDataMap().forEach((k, v) -> {
             if (!namespaceLevelLimitData.getSubnamespaceListForWhichLimitIsApplicable().contains(k)) {
@@ -105,12 +104,13 @@ public class MutliLevelLimitMap {
             }
         });
         namespaceLevelLimitData.setLimit(namespaceLevelLimitData.getLimit() - limitToBeReduced.get());
+        namespaceLevelLimitData.getSubNamespaceDataMap().forEach((k, v) -> {
+            updateLimitsDataBasedOnChildLimits(v);
+        });
     }
 
-    private static void updateLimitsData(SubNamespaceLevelLimitData subNamespaceLevelLimitData) {
-        subNamespaceLevelLimitData.getOrgDataMap().forEach((k, v) -> {
-            updateLimitsData(v);
-        });
+    private static void updateLimitsDataBasedOnChildLimits(SubNamespaceLevelLimitData subNamespaceLevelLimitData) {
+
         AtomicLong limitToBeReduced = new AtomicLong(0);
         subNamespaceLevelLimitData.getOrgDataMap().forEach((k, v) -> {
             if (!subNamespaceLevelLimitData.getOrgListForWhichLimitIsApplicable().contains(k)) {
@@ -118,6 +118,9 @@ public class MutliLevelLimitMap {
             }
         });
         subNamespaceLevelLimitData.setLimit(subNamespaceLevelLimitData.getLimit() - limitToBeReduced.get());
+        subNamespaceLevelLimitData.getOrgDataMap().forEach((k, v) -> {
+            updateLimitsData(v);
+        });
     }
 
     private static void updateLimitsData(OrgLevelLimitData v) {
