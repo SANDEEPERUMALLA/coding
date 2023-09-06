@@ -48,13 +48,16 @@ public class MutliLevelLimitMap {
         });
 
         List<Pair<String, Long>> limits = List.of(
+//                Pair.of("c1", 100L),
+//                Pair.of("c1:ns1", 50L),
+//                Pair.of("c1:ns1:subns1", 50L),
+//                Pair.of("c1:ns2", 30L),
+//                Pair.of("c1:ns2:subns2", 10L),
+//                Pair.of("c1:ns2:subns2:ORG2", 5L),
+//                Pair.of("c1:ns2:subns2:ORG1", 5L)
                 Pair.of("c1", 100L),
-                Pair.of("c1:ns1", 50L),
-                Pair.of("c1:ns1:subns1", 50L),
-                Pair.of("c1:ns2", 30L),
-                Pair.of("c1:ns2:subns2", 10L),
-                Pair.of("c1:ns2:subns2:ORG2", 5L),
-                Pair.of("c1:ns2:subns2:ORG1", 5L)
+                Pair.of("c1:ns2", 100L),
+                Pair.of("c1:ns1", 50L)
         );
 
         limits.forEach(limit -> {
@@ -121,7 +124,8 @@ public class MutliLevelLimitMap {
                     tenants.add(String.join(":", clientName, namespaceLevelLimitData.getNamespace(), k, k1));
                 });
             });
-            System.out.println(String.format("Tenant list %s for namespace %s", tenants, namespaceLevelLimitData.getNamespace()));
+            System.out.println(String.format("Tenant list %s for subnamespace %s", tenants, String.join(":", clientName, namespaceLevelLimitData.getNamespace())));
+
         }
     }
 
@@ -140,7 +144,7 @@ public class MutliLevelLimitMap {
                 }
                 tenants.add(String.join(":", clientName, namespace, subNamespaceLevelLimitData.getSubNamespace(), k));
             });
-            System.out.println(String.format("Tenant list %s for subnamespace %s", tenants, subNamespaceLevelLimitData.getSubNamespace()));
+            System.out.println(String.format("Tenant list %s for subnamespace %s", tenants, String.join(":", clientName, namespace, subNamespaceLevelLimitData.getSubNamespace())));
         }
 
     }
