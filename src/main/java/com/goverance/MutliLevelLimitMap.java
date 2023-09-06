@@ -5,6 +5,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.IntStream;
 
 public class MutliLevelLimitMap {
@@ -48,16 +49,16 @@ public class MutliLevelLimitMap {
         });
 
         List<Pair<String, Long>> limits = List.of(
+                Pair.of("c1", 200L),
+                Pair.of("c1:ns1", 50L),
+                Pair.of("c1:ns1:subns1", 20L),
+                Pair.of("c1:ns2", 60L),
+                Pair.of("c1:ns2:subns2", 40L),
+                Pair.of("c1:ns2:subns2:ORG2", 10L),
+                Pair.of("c1:ns2:subns2:ORG1", 10L)
 //                Pair.of("c1", 100L),
-//                Pair.of("c1:ns1", 50L),
-//                Pair.of("c1:ns1:subns1", 50L),
-//                Pair.of("c1:ns2", 30L),
-//                Pair.of("c1:ns2:subns2", 10L),
-//                Pair.of("c1:ns2:subns2:ORG2", 5L),
-//                Pair.of("c1:ns2:subns2:ORG1", 5L)
-                Pair.of("c1", 100L),
-                Pair.of("c1:ns2", 100L),
-                Pair.of("c1:ns1", 50L)
+//                Pair.of("c1:ns2", 100L),
+//                Pair.of("c1:ns1", 50L)
         );
 
         limits.forEach(limit -> {
@@ -67,7 +68,59 @@ public class MutliLevelLimitMap {
             updateLimitsData(topLevelLimitData, limitParts, limitValue);
         });
 
+        updateLimitsDataBasedOnChildLimits(topLevelLimitData);
+
         applyLimits(topLevelLimitData);
+
+    }
+
+    private static void updateLimitsDataBasedOnChildLimits(TopLevelLimitData topLevelLimitData) {
+        topLevelLimitData.getClientMap().forEach((k, v) -> {
+            updateLimitsData(v);
+        });
+
+    }
+
+    private static void updateLimitsData(ClientLevelLimitData clientLevelLimitData) {
+        clientLevelLimitData.getNamespaceDataMap().forEach((k, v) -> {
+            updateLimitsData(v);
+        });
+        AtomicLong limitToBeReduced = new AtomicLong(0);
+        clientLevelLimitData.getNamespaceDataMap().forEach((k, v) -> {
+            if (!clientLevelLimitData.getNamespaceListForWhichLimitIsApplicable().contains(k)) {
+                limitToBeReduced.addAndGet(clientLevelLimitData.getNamespaceDataMap().get(k).getLimit());
+            }
+        });
+        clientLevelLimitData.setLimit(clientLevelLimitData.getLimit() - limitToBeReduced.get());
+    }
+
+    private static void updateLimitsData(NamespaceLevelLimitData namespaceLevelLimitData) {
+        namespaceLevelLimitData.getSubNamespaceDataMap().forEach((k, v) -> {
+            updateLimitsData(v);
+        });
+        AtomicLong limitToBeReduced = new AtomicLong(0);
+        namespaceLevelLimitData.getSubNamespaceDataMap().forEach((k, v) -> {
+            if (!namespaceLevelLimitData.getSubnamespaceListForWhichLimitIsApplicable().contains(k)) {
+                limitToBeReduced.addAndGet(namespaceLevelLimitData.getSubNamespaceDataMap().get(k).getLimit());
+            }
+        });
+        namespaceLevelLimitData.setLimit(namespaceLevelLimitData.getLimit() - limitToBeReduced.get());
+    }
+
+    private static void updateLimitsData(SubNamespaceLevelLimitData subNamespaceLevelLimitData) {
+        subNamespaceLevelLimitData.getOrgDataMap().forEach((k, v) -> {
+            updateLimitsData(v);
+        });
+        AtomicLong limitToBeReduced = new AtomicLong(0);
+        subNamespaceLevelLimitData.getOrgDataMap().forEach((k, v) -> {
+            if (!subNamespaceLevelLimitData.getOrgListForWhichLimitIsApplicable().contains(k)) {
+                limitToBeReduced.addAndGet(subNamespaceLevelLimitData.getOrgDataMap().get(k).getLimit());
+            }
+        });
+        subNamespaceLevelLimitData.setLimit(subNamespaceLevelLimitData.getLimit() - limitToBeReduced.get());
+    }
+
+    private static void updateLimitsData(OrgLevelLimitData v) {
 
     }
 
@@ -101,7 +154,8 @@ public class MutliLevelLimitMap {
                     });
                 });
             });
-            System.out.println(String.format("Tenant list %s for namespace %s", tenants, clientLevelLimitData.getClientName()));
+            System.out.println(String.format("Tenant list for namespace %s: %s, limit: %d", clientLevelLimitData.getClientName(),
+                    tenants, limit));
         }
 
     }
@@ -124,7 +178,8 @@ public class MutliLevelLimitMap {
                     tenants.add(String.join(":", clientName, namespaceLevelLimitData.getNamespace(), k, k1));
                 });
             });
-            System.out.println(String.format("Tenant list %s for subnamespace %s", tenants, String.join(":", clientName, namespaceLevelLimitData.getNamespace())));
+            System.out.println(String.format("Tenant list for subnamespace %s: %s, limit: %d", String.join(":", clientName, namespaceLevelLimitData.getNamespace()),
+                    tenants, limit));
 
         }
     }
@@ -144,7 +199,8 @@ public class MutliLevelLimitMap {
                 }
                 tenants.add(String.join(":", clientName, namespace, subNamespaceLevelLimitData.getSubNamespace(), k));
             });
-            System.out.println(String.format("Tenant list %s for subnamespace %s", tenants, String.join(":", clientName, namespace, subNamespaceLevelLimitData.getSubNamespace())));
+            System.out.println(String.format("Tenant list for subnamespace %s: %s, limit : %d", String.join(":", clientName, namespace, subNamespaceLevelLimitData.getSubNamespace()),
+                    tenants, limit));
         }
 
     }
