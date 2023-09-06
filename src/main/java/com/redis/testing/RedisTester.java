@@ -15,15 +15,15 @@ public class RedisTester {
         // readDataFromSortedSet();
     }
 
-    private static void readDataFromSortedSet() {
-        Jedis jedis = new Jedis(URI.create("redis://localhost:6379"));
-        long start = System.currentTimeMillis();
-        Set<String> result = jedis.zrangeByLex("set1", "[1000", "[1010");
-        System.out.println("Result Size: " + result.size());
-        //System.out.println(result);
-        long end = System.currentTimeMillis();
-        System.out.println("Read Total Time: " + (end - start));
-    }
+//    private static void readDataFromSortedSet() {
+//        Jedis jedis = new Jedis(URI.create("redis://localhost:6379"));
+//        long start = System.currentTimeMillis();
+////        Set<String> result = jedis.zrangeByLex("set1", "[1000", "[1010");
+////        System.out.println("Result Size: " + result.size());
+//        //System.out.println(result);
+//        long end = System.currentTimeMillis();
+//        System.out.println("Read Total Time: " + (end - start));
+//    }
 
     private static void insertDataIntoRedisSortedSet() {
 

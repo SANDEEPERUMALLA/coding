@@ -35,12 +35,12 @@ public class RedisSortedSetUser implements RedisUser {
                 String sR = getDateString(dateTime);
                 log("Range : [" + sR + " - " + eR + "]");
                 long start = System.nanoTime();
-                Set<String> result = jedis.zrangeByLex("set1", "[" + sR, "[" + eR);
+//                Set<String> result = jedis.zrangeByLex("set1", "[" + sR, "[" + eR);
                 long time = System.nanoTime() - start;
                 noOfOps++;
                 log("ZRange Op Time: " + time);
                 latencies.add(time);
-                log("Result Size : " + result.size());
+//                log("Result Size : " + result.size());
             }
         }
     }

@@ -1,63 +1,92 @@
 package redis;
 
-import io.lettuce.core.RedisClient;
-import io.lettuce.core.RedisURI;
-import io.lettuce.core.ScoredValue;
+import com.salesforce.sds.keystore.DynamicKeyStoreBuilder;
+import io.lettuce.core.*;
 import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
+import org.apache.commons.lang3.RandomStringUtils;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.io.File;
+import java.util.concurrent.ExecutionException;
 
 public class LettuceClient {
 
-    public void test() {
-        System.out.println(this.getClass().getName());
-        System.out.println(this.getClass().getSimpleName());
+    public static void test() throws ExecutionException, InterruptedException {
+        RedisURI redisURI = RedisURI.builder().withHost("localhost").withPort(6379).build();
+        RedisClient redisClient = RedisClient.create(redisURI);
+        StatefulRedisConnection<String, String> connection = redisClient.connect();
+        RedisAsyncCommands<String, String> async = connection.async();
+        System.out.println(async.objectIdletime("k2").get());
+        System.out.println(async.objectIdletime("k3").get());
+//        RedisFuture<String> setCmd = async.set("k1", "v1");
+//        System.out.println(async.objectIdletime("k2").get());
+//        try {
+//            setCmd.get();
+//        } catch (InterruptedException | ExecutionException e) {
+//            System.out.println(e.getMessage());
+//            System.out.println("caught");
+//            System.out.println(e.getCause() instanceof  RedisCommandExecutionException);;
+//        }
+
+        // System.out.println(Boolean.parseBoolean(null));
+
     }
 
-    public static void main(String[] args) {
-        LettuceClient lettuceClient = new LettuceClient();
-        lettuceClient.test();
-
-        //redis1();
-//        RedisURI redisURI = RedisURI.builder()
-//                .withHost("localhost")
-//                .withAuthentication("default", "")
-//                .withPort(6380)
-//                .build();
-//
-//        System.out.println(redisURI);
-//        RedisClient redisClient = RedisClient.create(redisURI);
-//        StatefulRedisConnection<String, String> connection = redisClient.connect();
-//        RedisCommands<String, String> syncCommands = connection.sync();
-//        syncCommands.set("key", "value");
-//        System.out.println(syncCommands.get("key"));
-//        connection.close();
-//        redisClient.shutdown();
+    public static void main(String[] args) throws Exception {
+        test();
     }
+    public static final String KEYSTORE_FILE_NAME = "/ks.pkcs12";
+    public static final String TRUSTSTORE_FILE_NAME = "/ts.pkcs12";
 
-    public static void redis1() {
+    public static void redis() throws Exception {
+
+        String keyStoreFile = "/tmp/dktool_repo_falcontest/user/client" + KEYSTORE_FILE_NAME;
+        String trustStoreFile = "/tmp/dktool_repo_falcontest/user/client" + TRUSTSTORE_FILE_NAME;
+        deleteFile(keyStoreFile);
+        deleteFile(trustStoreFile);
+        String keyStoreFilePassword = RandomStringUtils.randomAlphanumeric(10);
+        String trustStoreFilePassword = RandomStringUtils.randomAlphanumeric(10);
+
+        new DynamicKeyStoreBuilder().withMonitoredDirectory("/tmp/dktool_repo_falcontest/user/client").withStoreFilename(keyStoreFile)
+                .withStorepass(keyStoreFilePassword).withKeyPassword(keyStoreFilePassword)
+                .withTruststoreFilename(trustStoreFile).withTruststorePass(trustStoreFilePassword)
+                .withCADirectory("/tmp/dktool_repo_falcontest/ca").withFlushToDisk(true).withStartThread(true)
+                .withoutChmod().build();
 
         RedisURI redisURI = RedisURI.builder()
                 .withHost("localhost")
                 .withPort(6379)
+                .withSsl(true)
+                .withVerifyPeer(true)
                 .build();
+
         RedisClient redisClient = RedisClient.create(redisURI);
-        long start = System.currentTimeMillis();
-        try (StatefulRedisConnection<String, String> connection = redisClient.connect()) {
+        SslOptions sslOptions = SslOptions.builder()
+                .jdkSslProvider()
+                .keystore(new File(keyStoreFile), keyStoreFilePassword.toCharArray())
+                .truststore(new File(trustStoreFile), trustStoreFilePassword)
+                .build();
 
-            RedisCommands<String, String> syncCommands = connection.sync();
-            Set<ScoredValue<String>> set = new HashSet<>();
-            for (int i = 0; i <= 10_00_0000; i++) {
-                set.add(ScoredValue.fromNullable(i, "test1234" + i));
+        ClientOptions clientOptions = ClientOptions.builder().sslOptions(sslOptions).build();
+        redisClient.setOptions(clientOptions);
+        StatefulRedisConnection<String, String> connection = redisClient.connect();
+        RedisCommands<String, String> syncCommands = connection.sync();
+        syncCommands.set("k1", "v1");
+        System.out.println(syncCommands.get("k1"));
+    }
+
+
+    private static void deleteFile(String file) throws Exception {
+        try {
+            File f = new File(file);
+            if (f != null && f.exists()) {
+                if (f.delete()) {
+                } else {
+                }
             }
-            syncCommands.zadd("set1", null, set.toArray(new ScoredValue[0]));
-        } finally {
-            redisClient.shutdown();
-            System.out.println("Total Execution time in ms: " + (System.currentTimeMillis() - start));
+        } catch (Exception ex) {
+            throw ex;
         }
-
-
     }
 }
