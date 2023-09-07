@@ -58,17 +58,17 @@ public class MutliLevelLimitMap {
         System.out.println();
 
         List<Pair<String, Long>> limits = List.of(
-                Pair.of("c1", 200L),
-                Pair.of("c1:ns1", 50L),
-                Pair.of("c1:ns1:subns1", 20L),
-                Pair.of("c1:ns1:subns1:ORG1", 10L),
-                Pair.of("c1:ns2", 60L),
-                Pair.of("c1:ns2:subns2", 40L),
-                Pair.of("c1:ns2:subns2:ORG2", 10L),
-                Pair.of("c1:ns2:subns2:ORG1", 10L)
-//                Pair.of("c1", 100L),
-//                Pair.of("c1:ns2", 20L),
-//                Pair.of("c1:ns1", 20L)
+//                Pair.of("c1", 200L),
+//                Pair.of("c1:ns1", 50L),
+//                Pair.of("c1:ns1:subns1", 20L),
+//                Pair.of("c1:ns1:subns1:ORG1", 10L),
+//                Pair.of("c1:ns2", 60L),
+//                Pair.of("c1:ns2:subns2", 40L),
+//                Pair.of("c1:ns2:subns2:ORG2", 10L),
+//                Pair.of("c1:ns2:subns2:ORG1", 10L)
+                Pair.of("c1", 100L),
+                Pair.of("c1:ns2", 20L),
+                Pair.of("c1:ns1", 20L)
         );
 
         limits.forEach(limit -> {
