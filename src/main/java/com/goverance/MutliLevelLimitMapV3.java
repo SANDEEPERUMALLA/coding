@@ -68,12 +68,12 @@ public class MutliLevelLimitMapV3 {
         List<Triple<String, Long, String>> limits = List.of(
                 Triple.of("c1:.*:.*:.*", 200L, "S"),
                 Triple.of("c1:ns1:.*:.*", 50L, "S"),
-                Triple.of("c1:ns1:subns1:.*", 20L, "S"),
-                Triple.of("c1:ns1:subns1:ORG1|ORG2", 5L, "M"),
-                Triple.of("c1:ns2:.*:.*", 60L, "S"),
-                Triple.of("c1:ns2:subns2:.*", 40L, "S"),
-                Triple.of("c1:ns2:subns2:ORG2", 10L, "S"),
-                Triple.of("c1:ns2:subns2:ORG1", 10L, "S")
+                Triple.of("c1:ns1:subns1|subns2:.*", 20L, "S")
+//                Triple.of("c1:ns1:subns1:ORG1|ORG2", 5L, "M"),
+//                Triple.of("c1:ns2:.*:.*", 60L, "S"),
+//                Triple.of("c1:ns2:subns2:.*", 40L, "S"),
+//                Triple.of("c1:ns2:subns2:ORG2", 10L, "S"),
+//                Triple.of("c1:ns2:subns2:ORG1", 10L, "S")
 //                Pair.of("c1", 100L),
 //                Pair.of("c1:ns2", 20L),
 //                Pair.of("c1:ns1", 20L)
@@ -112,7 +112,7 @@ public class MutliLevelLimitMapV3 {
             if (parentLimitData != null) {
                 parentLimitData.getKeysForWhichLimitIsApplicable().remove(limitData.getResourceName());
             }
-        } else if (childLevelToken.contains("|") && isMultipleTypeLimit(limitType)) {
+        } else if (childLevelToken.contains("|") && isMultiTypeLimit(limitType)) {
             String[] childLevelTokens = childLevelToken.split("\\|");
             Set<String> resourceListForTheMultiLimit = Arrays.stream(childLevelTokens).collect(Collectors.toSet());
             limitData.getMultiLimitMap().put(resourceListForTheMultiLimit, limitValue);
@@ -134,11 +134,9 @@ public class MutliLevelLimitMapV3 {
             }
             updateLimitsData(limitData, ld, keysTokensForLimit, currentLevel + 1, limitValue, limitType);
         }
-
-
     }
 
-    private static boolean isMultipleTypeLimit(String limitType) {
+    private static boolean isMultiTypeLimit(String limitType) {
         return "M".equals(limitType);
     }
 
@@ -157,9 +155,7 @@ public class MutliLevelLimitMapV3 {
         limitData.getMultiLimitMap().values().forEach(limitToBeReduced::addAndGet);
 
         limitData.setLimit(limitData.getLimit() - limitToBeReduced.get());
-        limitData.getChildKeysMap().forEach((k, v) -> {
-            updateLimitsDataBasedOnChildLimits(v);
-        });
+        limitData.getChildKeysMap().forEach((k, v) -> updateLimitsDataBasedOnChildLimits(v));
     }
 
     private static void applyLimits(NodeLevelLimitData nodeLevelLimitData) {
@@ -167,9 +163,7 @@ public class MutliLevelLimitMapV3 {
     }
 
     private static void applyLimits(LimitData limitData, String qualifiedResourceName) {
-        limitData.getChildKeysMap().forEach((k, v) -> {
-            applyLimits(v, qualifiedResourceName + ":" + limitData.getResourceName());
-        });
+        limitData.getChildKeysMap().forEach((k, v) -> applyLimits(v, qualifiedResourceName + ":" + limitData.getResourceName()));
 
         limitData.getMultiLimitMap().forEach((rSet, limit) -> {
             List<String> tenants = new ArrayList<>();
