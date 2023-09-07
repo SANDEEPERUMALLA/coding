@@ -115,62 +115,62 @@ public class MutliLevelLimitMapV3 {
 
     private static void applyLimits(NodeLevelLimitData nodeLevelLimitData) {
         nodeLevelLimitData.getChildKeysMap().forEach((k, v) -> {
-            applyLimits((ClientLevelLimitData) v);
+            applyLimits( v, v.getResourceName());
         });
     }
 
-    private static void applyLimits(ClientLevelLimitData clientLevelLimitData) {
-        clientLevelLimitData.getChildKeysMap().forEach((k, v) -> {
-            applyLimits((NamespaceLevelLimitData) v, clientLevelLimitData.getClientName());
+    private static void applyLimits(LimitData limitData, String qualifiedResourceName) {
+        limitData.getChildKeysMap().forEach((k, v) -> {
+            applyLimits(v, limitData.getResourceName() + ":" + k);
         });
-        long limit = clientLevelLimitData.getLimit();
+        long limit = limitData.getLimit();
         if (limit != -1) {
             List<String> tenants = new ArrayList<>();
-            clientLevelLimitData.getChildKeysMap().forEach((k, v) -> {
-                if (!clientLevelLimitData.getNamespacesForWhichLimitIsApplicable().contains(k)) {
-                    return;
-                }
-                v.getChildKeysMap().forEach((k1, v1) -> {
-                    if (!v.getKeysForWhichLimitIsApplicable().contains(k1)) {
-                        return;
-                    }
-                    v1.getChildKeysMap().forEach((k2, v2) -> {
-                        if (!v1.getKeysForWhichLimitIsApplicable().contains(k2)) {
-                            return;
-                        }
-                        tenants.add(String.join(":", clientLevelLimitData.getClientName(), k, k1, k2));
-                    });
-                });
-            });
-            System.out.println(String.format("Tenant list for eviction for namespace \"%s\": %s, limit: %d", clientLevelLimitData.getClientName(),
+            buildTenantList(tenants, limitData, qualifiedResourceName);
+            System.out.println(String.format("Tenant list for eviction for namespace \"%s\": %s, limit: %d", limitData.getResourceName(),
                     tenants, limit));
         }
-
     }
 
-    private static void applyLimits(NamespaceLevelLimitData namespaceLevelLimitData, String clientName) {
-        namespaceLevelLimitData.getChildKeysMap().forEach((k, v) -> {
-            applyLimits((SubNamespaceLevelLimitData) v, clientName, namespaceLevelLimitData.getNamespace());
+
+    private static void buildTenantList(List<String> tenants, LimitData limitData, String qualifiedResourceName) {
+
+        if (LimitLevel.TENANT == limitData.getLimitLevel()) {
+            tenants.add(qualifiedResourceName + ":" + limitData.getResourceName());
+        }
+
+        limitData.getChildKeysMap().forEach((k, v) -> {
+            if (!limitData.getKeysForWhichLimitIsApplicable().contains(k)) {
+                return;
+            }
+
+            buildTenantList(tenants, limitData.getChildKeysMap().get(k), qualifiedResourceName + k);
         });
-        long limit = namespaceLevelLimitData.getLimit();
-        List<String> tenants = new ArrayList<>();
-        if (limit != -1) {
-            namespaceLevelLimitData.getChildKeysMap().forEach((k, v) -> {
-                if (!namespaceLevelLimitData.getSubNamespacesForWhichLimitIsApplicable().contains(k)) {
-                    return;
-                }
-                v.getChildKeysMap().forEach((k1, v1) -> {
-                    if (!v.getKeysForWhichLimitIsApplicable().contains(k1)) {
-                        return;
-                    }
-                    tenants.add(String.join(":", clientName, namespaceLevelLimitData.getNamespace(), k, k1));
-                });
-            });
-            System.out.println(String.format("Tenant list for eviction for subnamespace \"%s\": %s, limit: %d", String.join(":", clientName, namespaceLevelLimitData.getNamespace()),
-                    tenants, limit));
-
-        }
     }
+
+//    private static void applyLimits(NamespaceLevelLimitData namespaceLevelLimitData, String clientName) {
+//        namespaceLevelLimitData.getChildKeysMap().forEach((k, v) -> {
+//            applyLimits((SubNamespaceLevelLimitData) v, clientName + ":" + namespaceLevelLimitData.getNamespace());
+//        });
+//        long limit = namespaceLevelLimitData.getLimit();
+//        List<String> tenants = new ArrayList<>();
+//        if (limit != -1) {
+//            namespaceLevelLimitData.getChildKeysMap().forEach((k, v) -> {
+//                if (!namespaceLevelLimitData.getSubNamespacesForWhichLimitIsApplicable().contains(k)) {
+//                    return;
+//                }
+//                v.getChildKeysMap().forEach((k1, v1) -> {
+//                    if (!v.getKeysForWhichLimitIsApplicable().contains(k1)) {
+//                        return;
+//                    }
+//                    tenants.add(String.join(":", clientName, namespaceLevelLimitData.getNamespace(), k, k1));
+//                });
+//            });
+//            System.out.println(String.format("Tenant list for eviction for subnamespace \"%s\": %s, limit: %d", String.join(":", clientName, namespaceLevelLimitData.getNamespace()),
+//                    tenants, limit));
+//
+//        }
+//    }
 
     private static void applyLimits(SubNamespaceLevelLimitData subNamespaceLevelLimitData, String clientName, String namespace) {
 
