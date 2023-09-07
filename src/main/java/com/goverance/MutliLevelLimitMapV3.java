@@ -115,19 +115,19 @@ public class MutliLevelLimitMapV3 {
 
     private static void applyLimits(NodeLevelLimitData nodeLevelLimitData) {
         nodeLevelLimitData.getChildKeysMap().forEach((k, v) -> {
-            applyLimits( v, v.getResourceName());
+            applyLimits( v, "");
         });
     }
 
     private static void applyLimits(LimitData limitData, String qualifiedResourceName) {
         limitData.getChildKeysMap().forEach((k, v) -> {
-            applyLimits(v, limitData.getResourceName() + ":" + k);
+            applyLimits(v, qualifiedResourceName + ":" + limitData.getResourceName());
         });
         long limit = limitData.getLimit();
         if (limit != -1) {
             List<String> tenants = new ArrayList<>();
             buildTenantList(tenants, limitData, qualifiedResourceName);
-            System.out.println(String.format("Tenant list for eviction for namespace \"%s\": %s, limit: %d", limitData.getResourceName(),
+            System.out.println(String.format("Tenant list for eviction for namespace \"%s\": %s, limit: %d", qualifiedResourceName + ":" + limitData.getResourceName(),
                     tenants, limit));
         }
     }
@@ -144,7 +144,7 @@ public class MutliLevelLimitMapV3 {
                 return;
             }
 
-            buildTenantList(tenants, limitData.getChildKeysMap().get(k), qualifiedResourceName + k);
+            buildTenantList(tenants, limitData.getChildKeysMap().get(k), qualifiedResourceName +  ":" + k);
         });
     }
 
@@ -208,6 +208,9 @@ public class MutliLevelLimitMapV3 {
     public static void updateLimitsData(LimitData parentLimitData, LimitData limitData, String[] keysTokensForLimit, int currentLevel, Long limitValue) {
 
         if (LimitLevel.TENANT == limitData.getLimitLevel()) {
+            if (parentLimitData != null) {
+                parentLimitData.getKeysForWhichLimitIsApplicable().remove(limitData.getResourceName());
+            }
             limitData.setLimit(limitValue);
             return;
         }
