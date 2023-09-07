@@ -18,7 +18,7 @@ public class MutliLevelLimitMapV3 {
 //        List<String> clientIds = List.of("c1");
         List<String> namespaces = List.of("ns1", "ns2", "ns3");
 //        List<String> namespaces = List.of("ns1", "ns2", "ns3", "ns4", "ns5");
-        List<String> subNamespaces = List.of("subns1", "subns2");
+        List<String> subNamespaces = List.of("subns1", "subns2", "subns3");
         List<String> tenants = List.of("ORG1", "ORG2", "ORG3");
 
 
@@ -68,7 +68,7 @@ public class MutliLevelLimitMapV3 {
         List<Triple<String, Long, String>> limits = List.of(
                 Triple.of("c1:.*:.*:.*", 200L, "S"),
                 Triple.of("c1:ns1:.*:.*", 50L, "S"),
-                Triple.of("c1:ns1:subns1|subns2:.*", 20L, "S")
+                Triple.of("c1:ns1:subns1|subns2:.*", 20L, "M")
 //                Triple.of("c1:ns1:subns1:ORG1|ORG2", 5L, "M"),
 //                Triple.of("c1:ns2:.*:.*", 60L, "S"),
 //                Triple.of("c1:ns2:subns2:.*", 40L, "S"),
