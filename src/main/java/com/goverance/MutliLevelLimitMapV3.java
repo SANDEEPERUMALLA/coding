@@ -10,6 +10,8 @@ import java.util.stream.IntStream;
 
 public class MutliLevelLimitMapV3 {
 
+    private static final NodeLevelLimitData nodeLevelLimitData = new NodeLevelLimitData("");
+
     public static void main(String[] args) {
         List<String> clientIds = List.of("c1", "c2");
 //        List<String> clientIds = List.of("c1");
@@ -18,7 +20,7 @@ public class MutliLevelLimitMapV3 {
         List<String> subNamespaces = List.of("subns1", "subns2");
         List<String> tenants = List.of("ORG1", "ORG2", "ORG3");
 
-        NodeLevelLimitData nodeLevelLimitData = new NodeLevelLimitData("");
+
 
         System.out.println("List of tenants !!!");
 
@@ -42,16 +44,16 @@ public class MutliLevelLimitMapV3 {
                             String subnamespaceName = keyParts[2];
                             String tenantName = keyParts[3];
 
-                            LimitData clientLevelLimitData = nodeLevelLimitData.getChildrenMap().computeIfAbsent(clientName, k -> new ClientLevelLimitData(clientName));
+                            LimitData clientLevelLimitData = nodeLevelLimitData.getChildKeysMap().computeIfAbsent(clientName, k -> new ClientLevelLimitData(clientName));
                             clientLevelLimitData.getKeysForWhichLimitIsApplicable().add(namespaceName);
 
-                            LimitData namespaceLevelLimitData = clientLevelLimitData.getChildrenMap().computeIfAbsent(namespaceName, k -> new NamespaceLevelLimitData(namespaceName));
+                            LimitData namespaceLevelLimitData = clientLevelLimitData.getChildKeysMap().computeIfAbsent(namespaceName, k -> new NamespaceLevelLimitData(namespaceName));
                             namespaceLevelLimitData.getKeysForWhichLimitIsApplicable().add(subnamespaceName);
 
-                            LimitData subNamespaceLevelLimitData = namespaceLevelLimitData.getChildrenMap().computeIfAbsent(subnamespaceName, k -> new SubNamespaceLevelLimitData(subnamespaceName));
+                            LimitData subNamespaceLevelLimitData = namespaceLevelLimitData.getChildKeysMap().computeIfAbsent(subnamespaceName, k -> new SubNamespaceLevelLimitData(subnamespaceName));
                             subNamespaceLevelLimitData.getKeysForWhichLimitIsApplicable().add(tenantName);
 
-                            subNamespaceLevelLimitData.getChildrenMap().computeIfAbsent(tenantName, k -> new TenantLevelLimitData(tenantName));
+                            subNamespaceLevelLimitData.getChildKeysMap().computeIfAbsent(tenantName, k -> new TenantLevelLimitData(tenantName));
 
                         });
                     });
@@ -64,71 +66,75 @@ public class MutliLevelLimitMapV3 {
         System.out.println();
 
         List<Pair<String, Long>> limits = List.of(
-//                Pair.of("c1", 200L),
-//                Pair.of("c1:ns1", 50L),
-//                Pair.of("c1:ns1:subns1", 20L),
-//                Pair.of("c1:ns1:subns1:ORG1", 10L),
-//                Pair.of("c1:ns2", 60L),
-//                Pair.of("c1:ns2:subns2", 40L),
-//                Pair.of("c1:ns2:subns2:ORG2", 10L),
-//                Pair.of("c1:ns2:subns2:ORG1", 10L)
-                Pair.of("c1", 100L),
-                Pair.of("c1:ns2", 20L),
-                Pair.of("c1:ns1", 20L)
+                Pair.of("c1:.*:.*:.*", 200L),
+                Pair.of("c1:ns1:.*:.*", 50L),
+                Pair.of("c1:ns1:subns1:.*", 20L),
+                Pair.of("c1:ns1:subns1:ORG1", 10L),
+                Pair.of("c1:ns2:.*:.*", 60L),
+                Pair.of("c1:ns2:subns2:.*", 40L),
+                Pair.of("c1:ns2:subns2:ORG2", 10L),
+                Pair.of("c1:ns2:subns2:ORG1", 10L)
+//                Pair.of("c1", 100L),
+//                Pair.of("c1:ns2", 20L),
+//                Pair.of("c1:ns1", 20L)
         );
 
         limits.forEach(limit -> {
             Long limitValue = limit.getRight();
             String limitStr = limit.getLeft();
             String[] limitParts = limitStr.split(":", -1);
-            updateLimitsData(null, nodeLevelLimitData, limitParts, -1, limitValue);
+            String clientId = limitParts[0];
+            LimitData clientLevelLimitData = nodeLevelLimitData.getChildKeysMap().get(clientId);
+            updateLimitsData(null, clientLevelLimitData, limitParts, 0, limitValue);
         });
 
         updateLimitsDataBasedOnChildLimits(nodeLevelLimitData);
+
+        applyLimits(nodeLevelLimitData);
+        System.out.println();
 
     }
 
     private static void updateLimitsDataBasedOnChildLimits(LimitData limitData) {
 
-        if(LimitLevel.TENANT == limitData.getLimitLevel()) {
+        if (LimitLevel.TENANT == limitData.getLimitLevel()) {
             return;
         }
 
         AtomicLong limitToBeReduced = new AtomicLong(0);
-        limitData.getChildrenMap().forEach((k, v) -> {
+        limitData.getChildKeysMap().forEach((k, v) -> {
             if (!limitData.getKeysForWhichLimitIsApplicable().contains(k)) {
-                limitToBeReduced.addAndGet(limitData.getChildrenMap().get(k).getLimit());
+                limitToBeReduced.addAndGet(limitData.getChildKeysMap().get(k).getLimit());
             }
         });
         limitData.setLimit(limitData.getLimit() - limitToBeReduced.get());
-        limitData.getChildrenMap().forEach((k, v) -> {
+        limitData.getChildKeysMap().forEach((k, v) -> {
             updateLimitsDataBasedOnChildLimits(v);
         });
     }
 
-    private static void applyLimits(TopLevelLimitData topLevelLimitData) {
-        topLevelLimitData.getClientMap().forEach((k, v) -> {
-
-            applyLimits(v);
+    private static void applyLimits(NodeLevelLimitData nodeLevelLimitData) {
+        nodeLevelLimitData.getChildKeysMap().forEach((k, v) -> {
+            applyLimits((ClientLevelLimitData) v);
         });
     }
 
     private static void applyLimits(ClientLevelLimitData clientLevelLimitData) {
-        clientLevelLimitData.getChildrenMap().forEach((k, v) -> {
+        clientLevelLimitData.getChildKeysMap().forEach((k, v) -> {
             applyLimits((NamespaceLevelLimitData) v, clientLevelLimitData.getClientName());
         });
         long limit = clientLevelLimitData.getLimit();
-        if (limit != 0) {
+        if (limit != -1) {
             List<String> tenants = new ArrayList<>();
-            clientLevelLimitData.getChildrenMap().forEach((k, v) -> {
+            clientLevelLimitData.getChildKeysMap().forEach((k, v) -> {
                 if (!clientLevelLimitData.getNamespacesForWhichLimitIsApplicable().contains(k)) {
                     return;
                 }
-                v.getChildrenMap().forEach((k1, v1) -> {
+                v.getChildKeysMap().forEach((k1, v1) -> {
                     if (!v.getKeysForWhichLimitIsApplicable().contains(k1)) {
                         return;
                     }
-                    v1.getChildrenMap().forEach((k2, v2) -> {
+                    v1.getChildKeysMap().forEach((k2, v2) -> {
                         if (!v1.getKeysForWhichLimitIsApplicable().contains(k2)) {
                             return;
                         }
@@ -143,17 +149,17 @@ public class MutliLevelLimitMapV3 {
     }
 
     private static void applyLimits(NamespaceLevelLimitData namespaceLevelLimitData, String clientName) {
-        namespaceLevelLimitData.getChildrenMap().forEach((k, v) -> {
+        namespaceLevelLimitData.getChildKeysMap().forEach((k, v) -> {
             applyLimits((SubNamespaceLevelLimitData) v, clientName, namespaceLevelLimitData.getNamespace());
         });
         long limit = namespaceLevelLimitData.getLimit();
         List<String> tenants = new ArrayList<>();
-        if (limit != 0) {
-            namespaceLevelLimitData.getChildrenMap().forEach((k, v) -> {
+        if (limit != -1) {
+            namespaceLevelLimitData.getChildKeysMap().forEach((k, v) -> {
                 if (!namespaceLevelLimitData.getSubNamespacesForWhichLimitIsApplicable().contains(k)) {
                     return;
                 }
-                v.getChildrenMap().forEach((k1, v1) -> {
+                v.getChildKeysMap().forEach((k1, v1) -> {
                     if (!v.getKeysForWhichLimitIsApplicable().contains(k1)) {
                         return;
                     }
@@ -168,14 +174,14 @@ public class MutliLevelLimitMapV3 {
 
     private static void applyLimits(SubNamespaceLevelLimitData subNamespaceLevelLimitData, String clientName, String namespace) {
 
-        subNamespaceLevelLimitData.getChildrenMap().forEach((k, v) -> {
+        subNamespaceLevelLimitData.getChildKeysMap().forEach((k, v) -> {
             applyLimits((TenantLevelLimitData) v, clientName, namespace, subNamespaceLevelLimitData.getSubNamespace());
         });
 
         List<String> tenants = new ArrayList<>();
         long limit = subNamespaceLevelLimitData.getLimit();
-        if (limit != 0) {
-            subNamespaceLevelLimitData.getChildrenMap().forEach((k, v) -> {
+        if (limit != -1) {
+            subNamespaceLevelLimitData.getChildKeysMap().forEach((k, v) -> {
                 if (!subNamespaceLevelLimitData.getTenantsForWhichLimitIsApplicable().contains(k)) {
                     return;
                 }
@@ -190,7 +196,7 @@ public class MutliLevelLimitMapV3 {
     private static void applyLimits(TenantLevelLimitData orgLevelLimitData, String clientName, String namespace, String subNamespace) {
 
         long limit = orgLevelLimitData.getLimit();
-        if (limit != 0) {
+        if (limit != -1) {
             List<String> tenants = new ArrayList<>();
             tenants.add(String.join(":", clientName, namespace, subNamespace, orgLevelLimitData.getOrgName()));
             System.out.println(String.format("Tenant list for eviction for tenant \"%s\": %s, limit : %d", String.join(":", clientName, namespace, subNamespace, orgLevelLimitData.getOrgName()),
@@ -199,123 +205,27 @@ public class MutliLevelLimitMapV3 {
 
     }
 
-//    public static void updateLimitsData(NodeLevelLimitData topLevelLimitData, String[] limitParts, Long limitValue) {
-//
-//        if (limitParts.length == 1) {
-//            updateClientLevelData(topLevelLimitData, limitParts, limitValue);
-//        } else if (limitParts.length == 2) {
-//            updateNamespaceLevelData(topLevelLimitData, limitParts, limitValue);
-//        } else if (limitParts.length == 3) {
-//            updateSubNamespaceLevelData(topLevelLimitData, limitParts, limitValue);
-//        } else if (limitParts.length == 4) {
-//            updateTenantLevelData(topLevelLimitData, limitParts, limitValue);
-//        }
-//    }
-
-    public static void updateLimitsData(LimitData parentLimitData, LimitData limitData, String[] keysTokensForLimit, int index, Long limitValue) {
+    public static void updateLimitsData(LimitData parentLimitData, LimitData limitData, String[] keysTokensForLimit, int currentLevel, Long limitValue) {
 
         if (LimitLevel.TENANT == limitData.getLimitLevel()) {
             limitData.setLimit(limitValue);
             return;
         }
 
-        String key = keysTokensForLimit[index + 1];
-        if (key.equals("*")) {
+        String key = keysTokensForLimit[currentLevel + 1];
+        if (key.equals(".*")) {
             limitData.setLimit(limitValue);
-            parentLimitData.getKeysForWhichLimitIsApplicable().remove(key);
+            if (parentLimitData != null) {
+                parentLimitData.getKeysForWhichLimitIsApplicable().remove(limitData.getResourceName());
+            }
         } else {
-            LimitData ld = limitData.getChildrenMap().get(key);
+            LimitData ld = limitData.getChildKeysMap().get(key);
             if (ld == null) {
                 return;
             }
-            updateLimitsData(limitData, ld, keysTokensForLimit, index, limitValue);
+            updateLimitsData(limitData, ld, keysTokensForLimit, currentLevel + 1, limitValue);
         }
 
-    }
-
-    public static void updateClientLevelData(NodeLevelLimitData nodeLevelLimitData, String[] keyParts, long limit) {
-        String client = keyParts[0];
-        ClientLevelLimitData clientLevelLimitData = (ClientLevelLimitData) nodeLevelLimitData.getChildrenMap().get(client);
-        clientLevelLimitData.setLimit(limit);
-        nodeLevelLimitData.getClientsForWhichLimitIsApplicable().remove(client);
-    }
-
-    public static void updateNamespaceLevelData(NodeLevelLimitData nodeLevelLimitData, String[] keyParts, long limit) {
-        String client = keyParts[0];
-        String ns = keyParts[1];
-        ClientLevelLimitData clientLevelLimitData = (ClientLevelLimitData) nodeLevelLimitData.getChildrenMap().get(client);
-        clientLevelLimitData.getNamespacesForWhichLimitIsApplicable().remove(ns);
-        NamespaceLevelLimitData namespaceLevelLimitData = (NamespaceLevelLimitData) clientLevelLimitData.getChildrenMap().get(ns);
-        namespaceLevelLimitData.setLimit(limit);
-    }
-
-    public static void updateSubNamespaceLevelData(LimitData topLevelLimitData, String[] keyParts, long limit) {
-        String client = keyParts[0];
-        String ns = keyParts[1];
-        String subNs = keyParts[2];
-        ClientLevelLimitData clientLevelLimitData = (ClientLevelLimitData)topLevelLimitData.getChildrenMap().get(client);
-        NamespaceLevelLimitData namespaceLevelLimitData = (NamespaceLevelLimitData) clientLevelLimitData.getChildrenMap().get(ns);
-        namespaceLevelLimitData.getSubNamespacesForWhichLimitIsApplicable().remove(subNs);
-        SubNamespaceLevelLimitData subNamespaceLevelLimitData = (SubNamespaceLevelLimitData) namespaceLevelLimitData.getChildrenMap().get(subNs);
-        subNamespaceLevelLimitData.setLimit(limit);
-    }
-
-    public static void updateTenantLevelData(TopLevelLimitData topLevelLimitData, String[] keyParts, long limit) {
-        String client = keyParts[0];
-        String ns = keyParts[1];
-        String subNs = keyParts[2];
-        String tenant = keyParts[3];
-        ClientLevelLimitData clientLevelLimitData = topLevelLimitData.getClientMap().get(client);
-        NamespaceLevelLimitData namespaceLevelLimitData = (NamespaceLevelLimitData) clientLevelLimitData.getChildrenMap().get(ns);
-        SubNamespaceLevelLimitData subNamespaceLevelLimitData = (SubNamespaceLevelLimitData) namespaceLevelLimitData.getChildrenMap().get(subNs);
-        subNamespaceLevelLimitData.getTenantsForWhichLimitIsApplicable().remove(tenant);
-        TenantLevelLimitData orgLevelLimitData = (TenantLevelLimitData) subNamespaceLevelLimitData.getChildrenMap().get(tenant);
-        orgLevelLimitData.setLimit(limit);
-    }
-
-
-    public static class TopLevelLimitData {
-        private String nodeName = "";
-        private long limit;
-        private Set<String> clientListForWhichLimitIsApplicable = new HashSet<>();
-        Map<String, ClientLevelLimitData> clientMap = new ConcurrentHashMap<>();
-
-        public TopLevelLimitData(String nodeName, long limit) {
-            this.nodeName = nodeName;
-            this.limit = limit;
-        }
-
-        public String getNodeName() {
-            return nodeName;
-        }
-
-        public void setNodeName(String nodeName) {
-            this.nodeName = nodeName;
-        }
-
-        public long getLimit() {
-            return limit;
-        }
-
-        public void setLimit(long limit) {
-            this.limit = limit;
-        }
-
-        public Set<String> getClientListForWhichLimitIsApplicable() {
-            return clientListForWhichLimitIsApplicable;
-        }
-
-        public void setClientListForWhichLimitIsApplicable(Set<String> clientListForWhichLimitIsApplicable) {
-            this.clientListForWhichLimitIsApplicable = clientListForWhichLimitIsApplicable;
-        }
-
-        public Map<String, ClientLevelLimitData> getClientMap() {
-            return clientMap;
-        }
-
-        public void setClientMap(Map<String, ClientLevelLimitData> clientMap) {
-            this.clientMap = clientMap;
-        }
     }
 
 
@@ -330,7 +240,7 @@ public class MutliLevelLimitMapV3 {
     public static class LimitData {
         private final String resourceName;
         private final LimitLevel limitLevel;
-        private long limit;
+        private long limit = -1;
         private final Set<String> resourcesForWhichLimitIsApplicable = new HashSet<>();
         Map<String, LimitData> childrenMap = new ConcurrentHashMap<>();
 
@@ -355,7 +265,7 @@ public class MutliLevelLimitMapV3 {
             return resourcesForWhichLimitIsApplicable;
         }
 
-        public Map<String, LimitData> getChildrenMap() {
+        public Map<String, LimitData> getChildKeysMap() {
             return childrenMap;
         }
 
@@ -364,7 +274,7 @@ public class MutliLevelLimitMapV3 {
         }
     }
 
-    public static class NodeLevelLimitData extends LimitData{
+    public static class NodeLevelLimitData extends LimitData {
 
         public NodeLevelLimitData(String nodeName) {
             super(nodeName, LimitLevel.NODE);
@@ -426,7 +336,7 @@ public class MutliLevelLimitMapV3 {
         }
     }
 
-    private static class TenantLevelLimitData extends LimitData{
+    private static class TenantLevelLimitData extends LimitData {
 
 
         public TenantLevelLimitData(String tenantName) {
@@ -437,5 +347,4 @@ public class MutliLevelLimitMapV3 {
             return super.getResourceName();
         }
     }
-
 }
